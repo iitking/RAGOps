@@ -1,0 +1,55 @@
+name: RAG Evaluation & Quality Gates CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1" # Weekly Monday morning scheduled benchmark
+
+jobs:
+  test-and-evaluate:
+    name: Unit Tests & Quality Gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run Unit and Integration Tests
+        run: |
+          pytest tests/ -v --tb=short
+
+      - name: Build Index
+        run: |
+          python -m scripts.build_index --input data/raw
+
+      - name: Run RAG Evaluation Benchmark
+        env:
+          LLM_PROVIDER: mock
+          EMBEDDING_PROVIDER: hash
+        run: |
+          python -m app.evaluation.run_eval --dataset data/eval/test.jsonl --output reports/eval.json
+
+      - name: Enforce Quality Gates
+        run: |
+          python -m app.evaluation.quality_gates --report reports/eval.json
+
+      - name: Upload Evaluation Report & Traces Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rag-evaluation-report
+          path: reports/

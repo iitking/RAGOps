@@ -1,0 +1,23 @@
+# Document ID: hr-policy-v3
+# Title: Acme Corp Global HR Policies and Procedures
+# Version: 3.2
+# Effective Date: January 1, 2026
+
+## Section 1: Working Hours and Remote Work
+Employees are expected to maintain core working hours between 10:00 AM and 4:00 PM local time. Remote work is permitted up to three days per week with prior written manager approval. Core hours ensure synchronous team collaboration and customer availability across global time zones.
+
+## Section 2: Paid Time Off (PTO) and Leave Requests
+Full-time employees accrue 20 days of paid time off per calendar year. Leave requests exceeding three consecutive business days must be submitted through the HR portal at least two weeks in advance. Unused PTO up to a maximum of five days may be rolled over into the subsequent calendar year.
+
+## Section 3: Health and Wellness Reimbursement
+The company provides an annual health and wellness stipend of $1,200 per employee. Eligible expenses include gym memberships, ergonomic home office equipment, and mental health counseling. Reimbursement receipts must be submitted within 30 days of purchase through the expense portal.
+
+## Section 4: Employee Grievance and Dispute Resolution
+All workplace grievances should first be addressed informally with the direct supervisor when appropriate. If the issue remains unresolved or involves the supervisor, the employee must file a formal written grievance with Human Resources.
+Employees must submit the completed form within 10 business days of the incident occurring. HR will acknowledge receipt within 48 hours and complete a formal review within 15 business days.
+
+## Section 5: Code of Conduct and Anti-Harassment
+Acme Corp enforces a zero-tolerance policy regarding harassment, discrimination, or retaliation in any form. Violations of this policy will result in disciplinary action up to and including immediate termination of employment. All employees are required to complete annual anti-harassment training by the end of Q1.
+
+## Section 6: Equipment and Security Protocol
+Company-issued laptops and hardware remain the sole property of Acme Corp. Employees must enable full-disk encryption and multi-factor authentication (MFA) on all devices. Lost or stolen devices must be reported to the IT Security Desk within 2 hours of discovery.
