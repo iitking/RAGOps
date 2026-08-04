@@ -1,1 +1,1 @@
-# Commit 005 / 165: feat(config): implement environment-based settings module in app/config.py
+# Commit 006 / 165: feat(config): add lru_cache singleton getter for application settings
