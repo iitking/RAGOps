@@ -1,1 +1,1 @@
-# Commit 002 / 165: build: configure pyproject.toml with project metadata and dependencies
+# Commit 003 / 165: chore: setup .gitignore for python, venv, and vector store data
