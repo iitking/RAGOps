@@ -1,1 +1,1 @@
-# Commit 007 / 165: feat(ingestion): define Document dataclass and document metadata schema
+# Commit 008 / 165: feat(ingestion): add to_dict serialization helper on Document model
