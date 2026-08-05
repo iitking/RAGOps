@@ -1,1 +1,1 @@
-# Commit 006 / 165: feat(config): add lru_cache singleton getter for application settings
+# Commit 007 / 165: feat(ingestion): define Document dataclass and document metadata schema
