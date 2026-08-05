@@ -1,1 +1,1 @@
-# Commit 009 / 165: feat(ingestion): implement TextLoader for plain text and markdown parsing
+# Commit 010 / 165: feat(ingestion): add deterministic document ID hashing helper
