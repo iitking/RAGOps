@@ -1,1 +1,1 @@
-# Commit 013 / 165: feat(ingestion): add PDFLoader support with multi-backend fallback
+# Commit 014 / 165: feat(ingestion): implement DirectoryLoader for recursive document loading
