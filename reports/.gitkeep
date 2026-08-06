@@ -1,1 +1,1 @@
-# Commit 010 / 165: feat(ingestion): add deterministic document ID hashing helper
+# Commit 011 / 165: feat(ingestion): implement HTMLLoader with script and style tag stripping
