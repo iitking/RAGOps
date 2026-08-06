@@ -1,1 +1,1 @@
-# Commit 014 / 165: feat(ingestion): implement DirectoryLoader for recursive document loading
+# Commit 015 / 165: feat(ingestion): add load_document auto-detection dispatch function
