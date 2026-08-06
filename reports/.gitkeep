@@ -1,1 +1,1 @@
-# Commit 012 / 165: refactor(ingestion): add fallback regex HTML tag cleaner when bs4 missing
+# Commit 013 / 165: feat(ingestion): add PDFLoader support with multi-backend fallback
