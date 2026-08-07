@@ -1,1 +1,1 @@
-# Commit 016 / 165: test(ingestion): add unit tests for Document and TextLoader parsing
+# Commit 017 / 165: feat(cleaning): implement NFKC unicode text normalization in clean_text
