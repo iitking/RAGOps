@@ -1,1 +1,1 @@
-# Commit 017 / 165: feat(cleaning): implement NFKC unicode text normalization in clean_text
+# Commit 018 / 165: feat(cleaning): strip zero-width and non-breaking space characters
