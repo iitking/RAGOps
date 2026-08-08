@@ -1,1 +1,1 @@
-# Commit 019 / 165: feat(cleaning): add unprintable control character stripping
+# Commit 020 / 165: feat(cleaning): collapse 3+ consecutive newlines to double newlines
