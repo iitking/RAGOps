@@ -1,1 +1,1 @@
-# Commit 022 / 165: feat(cleaning): implement content hashing and deduplicate_chunks
+# Commit 023 / 165: test(cleaning): add unit tests for text normalization and deduplication
