@@ -1,1 +1,1 @@
-# Commit 023 / 165: test(cleaning): add unit tests for text normalization and deduplication
+# Commit 024 / 165: feat(chunking): define Chunk dataclass with lineage tracking
