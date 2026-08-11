@@ -1,1 +1,1 @@
-# Commit 024 / 165: feat(chunking): define Chunk dataclass with lineage tracking
+# Commit 025 / 165: feat(chunking): add to_dict serialization helper on Chunk
