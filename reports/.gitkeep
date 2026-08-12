@@ -1,1 +1,1 @@
-# Commit 025 / 165: feat(chunking): add to_dict serialization helper on Chunk
+# Commit 026 / 165: feat(chunking): implement RecursiveTextChunker base splitting logic
