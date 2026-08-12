@@ -1,1 +1,1 @@
-# Commit 026 / 165: feat(chunking): implement RecursiveTextChunker base splitting logic
+# Commit 027 / 165: feat(chunking): add section heading detection and preamble handling
