@@ -1,1 +1,1 @@
-# Commit 028 / 165: feat(chunking): support sentence and paragraph boundary snapping
+# Commit 029 / 165: feat(chunking): retain character spans and chunk indexes in metadata
