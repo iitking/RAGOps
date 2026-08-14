@@ -1,1 +1,1 @@
-# Commit 031 / 165: feat(chunking): add chunk_documents batch processor
+# Commit 032 / 165: refactor(chunking): validate chunk_overlap is strictly less than chunk_size
