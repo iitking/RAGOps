@@ -1,1 +1,1 @@
-# Commit 030 / 165: feat(chunking): calculate total_chunks count across document chunks
+# Commit 031 / 165: feat(chunking): add chunk_documents batch processor
