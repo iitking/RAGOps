@@ -1,1 +1,1 @@
-# Commit 029 / 165: feat(chunking): retain character spans and chunk indexes in metadata
+# Commit 030 / 165: feat(chunking): calculate total_chunks count across document chunks
