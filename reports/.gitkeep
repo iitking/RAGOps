@@ -1,1 +1,1 @@
-# Commit 033 / 165: test(chunking): add unit tests for recursive chunking and overlaps
+# Commit 034 / 165: test(chunking): add test for section-based chunking and header preservation
