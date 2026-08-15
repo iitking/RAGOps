@@ -1,1 +1,1 @@
-# Commit 032 / 165: refactor(chunking): validate chunk_overlap is strictly less than chunk_size
+# Commit 033 / 165: test(chunking): add unit tests for recursive chunking and overlaps
