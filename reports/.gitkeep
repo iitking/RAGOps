@@ -1,1 +1,1 @@
-# Commit 040 / 165: chore(ingestion): finalize Phase 1 ingestion pipeline and loaders
+# Commit 041 / 165: refactor(loaders): add explicit document ID extractor from header comments
