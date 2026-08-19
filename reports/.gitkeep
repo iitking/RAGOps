@@ -1,1 +1,1 @@
-# Commit 044 / 165: feat(retrieval): implement embed_batch helper in BaseEmbedding
+# Commit 045 / 165: feat(retrieval): implement DeterministicHashEmbedding for offline tests
