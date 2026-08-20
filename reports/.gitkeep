@@ -1,1 +1,1 @@
-# Commit 045 / 165: feat(retrieval): implement DeterministicHashEmbedding for offline tests
+# Commit 046 / 165: refactor(retrieval): add subword n-gram hashing and L2 normalization
