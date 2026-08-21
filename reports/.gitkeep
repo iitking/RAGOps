@@ -1,1 +1,1 @@
-# Commit 051 / 165: refactor(retrieval): handle missing dependencies gracefully in embeddings
+# Commit 052 / 165: feat(retrieval): define BaseVectorStore, VectorRecord, and SearchResult
