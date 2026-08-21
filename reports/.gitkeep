@@ -1,1 +1,1 @@
-# Commit 049 / 165: feat(retrieval): add OpenAIEmbedding integration via httpx
+# Commit 050 / 165: feat(retrieval): implement get_embedding_model factory with fallbacks
