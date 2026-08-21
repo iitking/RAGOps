@@ -1,1 +1,1 @@
-# Commit 050 / 165: feat(retrieval): implement get_embedding_model factory with fallbacks
+# Commit 051 / 165: refactor(retrieval): handle missing dependencies gracefully in embeddings
