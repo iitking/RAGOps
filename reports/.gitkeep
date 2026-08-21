@@ -1,1 +1,1 @@
-# Commit 047 / 165: test(retrieval): verify embedding dimensionality and unit L2 norm
+# Commit 048 / 165: feat(retrieval): add SentenceTransformerEmbedding wrapper module
