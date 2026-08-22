@@ -1,1 +1,1 @@
-# Commit 052 / 165: feat(retrieval): define BaseVectorStore, VectorRecord, and SearchResult
+# Commit 053 / 165: feat(retrieval): add cosine similarity helper function with zero-division guard
