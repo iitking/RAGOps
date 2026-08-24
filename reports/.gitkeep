@@ -1,1 +1,1 @@
-# Commit 054 / 165: feat(retrieval): implement InMemoryVectorStore with cosine similarity
+# Commit 055 / 165: feat(retrieval): add thread-safe upsert, search, and delete methods
