@@ -1,1 +1,1 @@
-# Commit 053 / 165: feat(retrieval): add cosine similarity helper function with zero-division guard
+# Commit 054 / 165: feat(retrieval): implement InMemoryVectorStore with cosine similarity
