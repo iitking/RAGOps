@@ -1,1 +1,1 @@
-# Commit 057 / 165: test(retrieval): add unit tests for in-memory vector store operations
+# Commit 058 / 165: feat(retrieval): implement QdrantVectorStore client connection
