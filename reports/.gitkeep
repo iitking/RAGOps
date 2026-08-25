@@ -1,1 +1,1 @@
-# Commit 056 / 165: feat(retrieval): implement clear and count methods in InMemoryVectorStore
+# Commit 057 / 165: test(retrieval): add unit tests for in-memory vector store operations
