@@ -1,1 +1,1 @@
-# Commit 055 / 165: feat(retrieval): add thread-safe upsert, search, and delete methods
+# Commit 056 / 165: feat(retrieval): implement clear and count methods in InMemoryVectorStore
