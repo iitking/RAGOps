@@ -1,1 +1,1 @@
-# Commit 060 / 165: feat(retrieval): support in-memory ':memory:' mode for Qdrant client
+# Commit 061 / 165: feat(retrieval): implement Qdrant search and point conversion logic
