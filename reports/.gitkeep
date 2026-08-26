@@ -1,1 +1,1 @@
-# Commit 058 / 165: feat(retrieval): implement QdrantVectorStore client connection
+# Commit 059 / 165: feat(retrieval): add automatic Qdrant collection creation with cosine metric
