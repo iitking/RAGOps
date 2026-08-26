@@ -1,1 +1,1 @@
-# Commit 061 / 165: feat(retrieval): implement Qdrant search and point conversion logic
+# Commit 062 / 165: feat(retrieval): implement get_vector_store singleton factory
