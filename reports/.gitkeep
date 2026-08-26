@@ -1,1 +1,1 @@
-# Commit 059 / 165: feat(retrieval): add automatic Qdrant collection creation with cosine metric
+# Commit 060 / 165: feat(retrieval): support in-memory ':memory:' mode for Qdrant client
