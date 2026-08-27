@@ -1,1 +1,1 @@
-# Commit 063 / 165: refactor(retrieval): fallback to in-memory store if Qdrant server unreachable
+# Commit 064 / 165: feat(retrieval): define RetrieverResult with score and payload metadata
