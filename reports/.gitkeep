@@ -1,1 +1,1 @@
-# Commit 067 / 165: feat(retrieval): instrument retrieval search with millisecond latency timing
+# Commit 068 / 165: feat(retrieval): add minimum similarity score filtering threshold
