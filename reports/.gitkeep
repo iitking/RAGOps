@@ -1,1 +1,1 @@
-# Commit 065 / 165: feat(retrieval): implement Retriever class connecting embeddings & store
+# Commit 066 / 165: feat(retrieval): add batch chunk indexing method index_chunks
