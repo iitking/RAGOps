@@ -1,1 +1,1 @@
-# Commit 064 / 165: feat(retrieval): define RetrieverResult with score and payload metadata
+# Commit 065 / 165: feat(retrieval): implement Retriever class connecting embeddings & store
