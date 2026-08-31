@@ -1,1 +1,1 @@
-# Commit 070 / 165: feat(scripts): create build_index.py CLI script for offline indexing
+# Commit 071 / 165: refactor(scripts): support CLI flags for chunk size and overlap in build_index
