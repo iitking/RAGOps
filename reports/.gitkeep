@@ -1,1 +1,1 @@
-# Commit 071 / 165: refactor(scripts): support CLI flags for chunk size and overlap in build_index
+# Commit 072 / 165: test(scripts): verify build_index populates in-memory and disk stores
