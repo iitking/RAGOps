@@ -1,1 +1,1 @@
-# Commit 074 / 165: perf(retrieval): optimize vector cosine distance calculations
+# Commit 075 / 165: refactor(retriever): support custom top_k and threshold overrides
