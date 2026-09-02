@@ -1,1 +1,1 @@
-# Commit 075 / 165: refactor(retriever): support custom top_k and threshold overrides
+# Commit 076 / 165: test(retrieval): add ranking boundary test cases
