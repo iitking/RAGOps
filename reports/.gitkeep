@@ -1,1 +1,1 @@
-# Commit 078 / 165: chore(retrieval): verify embedding consistency across multiple runs
+# Commit 079 / 165: refactor(retrieval): validate vector dimensions match configured size
