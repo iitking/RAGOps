@@ -1,1 +1,1 @@
-# Commit 080 / 165: test(retrieval): test multi-document indexing and query filtering
+# Commit 081 / 165: perf(retrieval): minimize memory footprint during batch chunk indexing
