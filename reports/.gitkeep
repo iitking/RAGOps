@@ -1,1 +1,1 @@
-# Commit 086 / 165: feat(generation): implement assemble_rag_prompt template builder
+# Commit 087 / 165: feat(generation): define Citation and GenerationResult dataclasses
