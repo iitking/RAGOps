@@ -1,1 +1,1 @@
-# Commit 083 / 165: feat(generation): define strict RAG system prompt enforcing evidence grounding
+# Commit 084 / 165: feat(generation): implement prompt injection defense via boundary tags
