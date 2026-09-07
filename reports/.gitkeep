@@ -1,1 +1,1 @@
-# Commit 087 / 165: feat(generation): define Citation and GenerationResult dataclasses
+# Commit 088 / 165: feat(generation): add token usage estimation and latency tracking
