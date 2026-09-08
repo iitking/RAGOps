@@ -1,1 +1,1 @@
-# Commit 089 / 165: feat(generation): implement deterministic rule-grounded mock LLM generator
+# Commit 090 / 165: feat(generation): add OpenAI and Anthropic HTTP generator callers
