@@ -1,1 +1,1 @@
-# Commit 095 / 165: feat(evaluation): design synthetic evaluation dataset schema (test.jsonl)
+# Commit 096 / 165: feat(evaluation): implement generate_dataset.py with factual sentence parser
