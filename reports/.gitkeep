@@ -1,1 +1,1 @@
-# Commit 102 / 165: feat(evaluation): implement Mean Average Precision for Context Precision
+# Commit 103 / 165: refactor(evaluation): use standard MAP denominator for Context Precision
