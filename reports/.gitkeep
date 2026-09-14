@@ -1,1 +1,1 @@
-# Commit 103 / 165: refactor(evaluation): use standard MAP denominator for Context Precision
+# Commit 104 / 165: feat(evaluation): implement Faithfulness metric with claim decomposition
