@@ -1,1 +1,1 @@
-# Commit 110 / 165: feat(evaluation): implement Retrieval Recall@k and MRR ranking metrics
+# Commit 111 / 165: feat(evaluation): implement evaluate_sample helper function
