@@ -1,1 +1,1 @@
-# Commit 109 / 165: refactor(evaluation): support unanswerable cases in faithfulness scoring
+# Commit 110 / 165: feat(evaluation): implement Retrieval Recall@k and MRR ranking metrics
