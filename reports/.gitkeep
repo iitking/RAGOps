@@ -1,1 +1,1 @@
-# Commit 117 / 165: feat(evaluation): implement ensure_index_populated helper in eval runner
+# Commit 118 / 165: feat(evaluation): implement --regress flag for deliberate failure testing
