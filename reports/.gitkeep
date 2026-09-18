@@ -1,1 +1,1 @@
-# Commit 122 / 165: refactor(evaluation): wire default threshold flags from settings in quality_gates
+# Commit 123 / 165: feat(observability): define TraceEvent schema linking query, citations & feedback
