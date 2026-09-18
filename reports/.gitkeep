@@ -1,1 +1,1 @@
-# Commit 123 / 165: feat(observability): define TraceEvent schema linking query, citations & feedback
+# Commit 124 / 165: feat(observability): implement TraceCollector with in-memory & JSONL logging
