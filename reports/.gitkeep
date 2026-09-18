@@ -1,1 +1,1 @@
-# Commit 121 / 165: test(evaluation): add test cases for quality gate pass and regression failure
+# Commit 122 / 165: refactor(evaluation): wire default threshold flags from settings in quality_gates
