@@ -1,1 +1,1 @@
-# Commit 124 / 165: feat(observability): implement TraceCollector with in-memory & JSONL logging
+# Commit 125 / 165: feat(observability): add Langfuse client integration in TraceCollector
