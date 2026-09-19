@@ -1,1 +1,1 @@
-# Commit 125 / 165: feat(observability): add Langfuse client integration in TraceCollector
+# Commit 126 / 165: feat(observability): implement get_metrics_summary with latency percentiles
