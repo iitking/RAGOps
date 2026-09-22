@@ -1,1 +1,1 @@
-# Commit 133 / 165: feat(api): implement /ingest endpoint for documents and inline text
+# Commit 134 / 165: feat(api): implement /query endpoint returning citations and trace ID
