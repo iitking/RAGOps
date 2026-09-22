@@ -1,1 +1,1 @@
-# Commit 134 / 165: feat(api): implement /query endpoint returning citations and trace ID
+# Commit 135 / 165: feat(api): implement /evaluate endpoint for authorized evaluation jobs
