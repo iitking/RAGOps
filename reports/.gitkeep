@@ -1,1 +1,1 @@
-# Commit 135 / 165: feat(api): implement /evaluate endpoint for authorized evaluation jobs
+# Commit 136 / 165: refactor(api): add fallback pydantic models for zero-dependency test runs
