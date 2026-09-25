@@ -1,1 +1,1 @@
-# Commit 145 / 165: build: add compose.yaml for containerized API and Qdrant vector store
+# Commit 146 / 165: build: configure persistent qdrant_storage volume in compose.yaml
