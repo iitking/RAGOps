@@ -1,1 +1,1 @@
-# Commit 144 / 165: build: add container healthcheck probe in Dockerfile
+# Commit 145 / 165: build: add compose.yaml for containerized API and Qdrant vector store
