@@ -1,1 +1,1 @@
-# Commit 148 / 165: build: create requirements.txt for standard pip installation
+# Commit 149 / 165: build: create requirements-dev.txt for development dependencies
