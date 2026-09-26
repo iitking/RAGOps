@@ -1,1 +1,1 @@
-# Commit 146 / 165: build: configure persistent qdrant_storage volume in compose.yaml
+# Commit 147 / 165: build: create Makefile with shortcuts for install, test, eval, and run
