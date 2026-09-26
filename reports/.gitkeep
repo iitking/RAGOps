@@ -1,1 +1,1 @@
-# Commit 147 / 165: build: create Makefile with shortcuts for install, test, eval, and run
+# Commit 148 / 165: build: create requirements.txt for standard pip installation
