@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAGOps · Simple, Reliable RAG with Quality Guardrails</title>
+  <title>RAGOps · Automated RAG Evaluation & CI/CD Guardrails</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
     :root {
@@ -14,7 +14,6 @@
       --text-main: #0f172a;
       --text-muted: #64748b;
       --primary: #2563eb;
-      --primary-light: #eff6ff;
     }
     .dark {
       --bg: #090d16;
@@ -24,12 +23,11 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --primary: #3b82f6;
-      --primary-light: rgba(59, 130, 246, 0.12);
     }
     body {
       background-color: var(--bg);
       color: var(--text-main);
-      transition: background-color 0.25s ease, color 0.25s ease;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .ui-card {
       background-color: var(--surface);
@@ -40,30 +38,23 @@
       border: 1px solid var(--border);
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
     .animate-fade-in {
-      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes pulseSoft {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.03); opacity: 1; }
-    }
-    .animate-pulse-soft {
-      animation: pulseSoft 2.5s infinite ease-in-out;
+      animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans antialiased">
 
   <!-- ========================================== -->
-  <!-- Top Simple Modern Navbar                   -->
+  <!-- Top Navigation Bar                         -->
   <!-- ========================================== -->
-  <header class="ui-card border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+  <header class="ui-card border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-95 dark:bg-opacity-95">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       
-      <!-- Logo & Project Identity -->
+      <!-- Logo & Title -->
       <a href="/" class="flex items-center gap-3 group">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:scale-105 transition">
           ⚡
@@ -72,27 +63,27 @@
           <div class="flex items-center gap-2">
             <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">RAGOps</span>
             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
-              AI Guardrails
+              CI/CD Guardrails
             </span>
           </div>
-          <p class="text-[11px] text-slate-500 dark:text-slate-400">Zero Hallucination Retrieval</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Automated Evaluation & Regression Prevention</p>
         </div>
       </a>
 
-      <!-- Right Actions: Status & Theme Toggle -->
+      <!-- Right Controls: Status & Theme Toggle -->
       <div class="flex items-center gap-3">
         <!-- Live Backend Status -->
         <div id="backend-status-pill" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="backend-status-text">FastAPI Connected · 158 Chunks</span>
+          <span id="backend-status-text">FastAPI Ready · 158 Chunks (sentence-transformers)</span>
         </div>
 
-        <!-- Light / Dark Mode Toggle Button -->
+        <!-- Light / Dark Mode Toggle -->
         <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Light/Dark Theme" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center justify-center shadow-sm">
           <span id="theme-icon" class="text-base">🌙</span>
         </button>
 
-        <!-- GitHub Link -->
+        <!-- GitHub Repo Link -->
         <a href="https://github.com/iitking/RAGOps" target="_blank" class="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition shadow-sm">
           <span>GitHub</span>
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
@@ -103,26 +94,26 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- Main Content Area                          -->
+  <!-- Main Application Body                      -->
   <!-- ========================================== -->
   <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
 
-    <!-- Hero Section: Clear, Simple, Human -->
+    <!-- Hero Section -->
     <div class="text-center space-y-3">
       <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-        Search Docs with <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Verified Accuracy</span>
+        Production RAG with <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Automated Quality Gates</span>
       </h1>
       <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
-        Poochiye koi bhi sawal hamare 16 technical docs se. RAGOps factual context dhoondta hai, answer generate karta hai, aur real-time me <strong>hallucination check</strong> karta hai.
+        Query our technical corpus. RAGOps retrieves context, synthesizes grounded answers with inline citations, extracts factual claims with an <strong>LLM-as-a-Judge</strong>, and blocks regressions in CI/CD.
       </p>
     </div>
 
     <!-- ========================================== -->
-    <!-- Interactive Search / Query Card            -->
+    <!-- Search / Question Input Card               -->
     <!-- ========================================== -->
     <div class="ui-card rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
       
-      <!-- Input Field and Submit Button -->
+      <!-- Query Form -->
       <form onsubmit="handleQuerySubmit(event)" class="relative flex flex-col sm:flex-row gap-2.5">
         <div class="relative flex-1">
           <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -132,7 +123,7 @@
             id="question-input" 
             type="text" 
             value="How does FastAPI handle asynchronous dependency injection with yield?"
-            placeholder="Type a question (e.g. How to use OAuth2 in FastAPI?)..."
+            placeholder="Ask a technical question..."
             class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 transition">
         </div>
         <button 
@@ -140,21 +131,28 @@
           type="submit" 
           class="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold text-sm transition shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 whitespace-nowrap">
           <span id="button-spinner" class="hidden animate-spin">⏳</span>
-          <span id="button-label">Ask RAGOps</span>
+          <span id="button-label">Run RAG Query</span>
         </button>
       </form>
 
-      <!-- Quick 1-Click Suggestions -->
+      <!-- 4 Scenarios: Including Passing, Edge Cases, and Regressed Failure -->
       <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
-        <span class="text-slate-500 dark:text-slate-400 font-medium">Quick examples:</span>
-        <button onclick="setQuery(0)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition">
-          ⚡ Async Yield Dependencies
+        <span class="text-slate-500 dark:text-slate-400 font-medium">Scenarios:</span>
+        <button onclick="setQuery(0)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center gap-1.5">
+          <span>⚡</span>
+          <span>Async Yield (PASS)</span>
         </button>
-        <button onclick="setQuery(1)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition">
-          🔐 OAuth2 & JWT Security
+        <button onclick="setQuery(1)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition flex items-center gap-1.5">
+          <span>🔐</span>
+          <span>OAuth2 JWT (PASS)</span>
         </button>
-        <button onclick="setQuery(2)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 border border-amber-200 dark:border-amber-800/50 transition">
-          ⚠️ Out-of-Domain (Test Hallucination Refusal)
+        <button onclick="setQuery(2)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 border border-amber-200 dark:border-amber-800/50 transition flex items-center gap-1.5">
+          <span>⚠️</span>
+          <span>Out-of-Domain Refusal (PASS)</span>
+        </button>
+        <button onclick="setQuery(3)" class="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-800/60 font-semibold transition flex items-center gap-1.5">
+          <span>❌</span>
+          <span>Regressed Pipeline (FAIL Demo)</span>
         </button>
       </div>
 
@@ -165,73 +163,94 @@
     <!-- ========================================== -->
     <div id="results-section" class="space-y-5 animate-fade-in">
       
-      <!-- Answer Card -->
-      <div class="ui-card rounded-2xl p-5 sm:p-7 shadow-lg space-y-5">
+      <!-- Primary Answer Box -->
+      <div id="answer-card-wrapper" class="ui-card rounded-2xl p-5 sm:p-7 shadow-lg space-y-5 transition-all">
         
         <!-- Answer Header -->
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">AI Synthesized Answer</h2>
+            <span id="status-indicator-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <h2 id="answer-header-title" class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">Grounded Answer (With Citations)</h2>
           </div>
           <div class="flex items-center gap-2 text-xs">
             <span id="model-pill" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
               gpt-4o-mini
             </span>
             <span id="latency-pill" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-              ⏱️ 1,248 ms
+              ⏱️ 1,254 ms
             </span>
+          </div>
+        </div>
+
+        <!-- Failure Warning Banner (Hidden by default, shown on regressed demo) -->
+        <div id="regression-alert-banner" class="hidden p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs flex items-start gap-2.5">
+          <span class="text-base font-bold">⚠️</span>
+          <div>
+            <strong class="font-bold">Regression Detected by LLM-as-a-Judge!</strong>
+            <p class="mt-0.5 text-slate-600 dark:text-slate-300">
+              The model fabricated factual claims not supported by the retrieved technical context. Quality gate thresholds were violated; pull request merge is blocked.
+            </p>
           </div>
         </div>
 
         <!-- Answer Text Body -->
         <div id="answer-body" class="text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-200 space-y-3 font-normal">
           <p>
-            FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle is executed in two predictable phases:
+            FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle executes in two distinct phases:
           </p>
           <ul class="list-disc pl-5 space-y-1.5 text-sm">
             <li>
-              <strong>Resource Setup (Before Yield):</strong> The code before <code>yield</code> runs before the route handler. It creates resources (like an asynchronous database session) directly on Starlette's asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.
+              <strong>Resource Setup (Before Yield):</strong> Code executed prior to <code>yield</code> runs before the route handler, initializing asynchronous resources (e.g. database sessions) directly on the asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.
             </li>
             <li>
-              <strong>Automatic Teardown (After Yield):</strong> Once the response is sent back to the client, execution resumes after <code>yield</code> to safely close connections (e.g. <code>session.close()</code>), even if an unhandled exception occurred <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.
+              <strong>Teardown & Cleanup (After Yield):</strong> Following response dispatch, execution resumes after <code>yield</code> to guarantee cleanup (e.g. <code>session.close()</code>), even if an unhandled exception occurred <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.
             </li>
           </ul>
         </div>
 
-        <!-- Quality Metrics Summary Badges (3 Simple Indicators) -->
+        <!-- Metric Badges: Perfectly Aligned with quality_gates.py and README -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
           
+          <!-- Metric 1: Faithfulness -->
           <div class="ui-card-subtle p-3 rounded-xl text-center">
             <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Faithfulness</div>
-            <div id="metric-faithfulness" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">99.5%</div>
-            <div class="text-[10px] text-slate-400">Claims Verified</div>
+            <div id="metric-faithfulness" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">1.000 (100%)</div>
+            <div class="text-[10px] text-slate-400">Criteria &ge; 0.85</div>
           </div>
 
+          <!-- Metric 2: Hallucination Rate -->
           <div class="ui-card-subtle p-3 rounded-xl text-center">
-            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Hallucination</div>
-            <div id="metric-hallucination" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">0.5%</div>
-            <div class="text-[10px] text-slate-400">&lt; 5% Target Safe</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Hallucination Rate</div>
+            <div id="metric-hallucination" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">0.000 (0%)</div>
+            <div class="text-[10px] text-slate-400">Criteria &le; 0.02</div>
           </div>
 
+          <!-- Metric 3: Context Recall -->
           <div class="ui-card-subtle p-3 rounded-xl text-center">
             <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Context Recall</div>
-            <div id="metric-recall" class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 font-mono">97.7%</div>
-            <div class="text-[10px] text-slate-400">Evidence Covered</div>
+            <div id="metric-recall" class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 font-mono">0.980 (98%)</div>
+            <div class="text-[10px] text-slate-400">Criteria &ge; 0.90</div>
           </div>
 
+          <!-- Metric 4: CI Quality Gate Status -->
           <div class="ui-card-subtle p-3 rounded-xl text-center">
             <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">CI Quality Gate</div>
-            <div id="metric-gate" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">PASSED ✓</div>
-            <div class="text-[10px] text-slate-400">Ready to Deploy</div>
+            <div id="metric-gate" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">PASSED ✓</div>
+            <div id="metric-gate-subtext" class="text-[10px] text-slate-400">Approved for Deploy</div>
           </div>
 
         </div>
 
-        <!-- Feedback Thumbs Up / Down -->
-        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <!-- Benchmark Baseline Aggregate Note -->
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <span>Benchmark Suite Baseline: <strong class="text-slate-700 dark:text-slate-200">50 test cases</strong> evaluated</span>
+          <span>Suite Avg Faithfulness: <strong class="text-emerald-600 dark:text-emerald-400">0.9950</strong> · Avg Hallucination: <strong class="text-emerald-600 dark:text-emerald-400">0.0050</strong></span>
+        </div>
+
+        <!-- User Feedback Row -->
+        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <div class="flex items-center gap-2">
-            <span>Was this helpful?</span>
+            <span>Was this answer accurate?</span>
             <button onclick="handleFeedback(true)" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
               👍 Yes
             </button>
@@ -245,40 +264,39 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- Collapsible Context Evidence (Clean & Easy)-->
+      <!-- Collapsible Section 1: Fact-Checked Claims -->
       <!-- ========================================== -->
       <div class="ui-card rounded-2xl overflow-hidden shadow-sm">
-        <button onclick="toggleSection('context-drawer')" class="w-full p-4 px-5 text-left flex items-center justify-between text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+        <button onclick="toggleSection('claims-drawer', 'claims-chevron')" class="w-full p-4 px-5 text-left flex items-center justify-between text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-2">
+            <span>🔍</span>
+            <span>LLM-as-a-Judge: Atomic Claim Verification (<span id="claims-count-badge">3 / 3 Supported</span>)</span>
+          </div>
+          <span id="claims-chevron" class="text-xs text-slate-400 transition-transform">▼</span>
+        </button>
+
+        <div id="claims-drawer" class="p-5 pt-0 space-y-2.5 border-t border-slate-100 dark:border-slate-800">
+          <div id="claims-list-container" class="space-y-2 pt-3">
+            <!-- Dynamic Claims Inserted Here -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- Collapsible Section 2: Context Evidence    -->
+      <!-- ========================================== -->
+      <div class="ui-card rounded-2xl overflow-hidden shadow-sm">
+        <button onclick="toggleSection('context-drawer', 'context-chevron')" class="w-full p-4 px-5 text-left flex items-center justify-between text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
           <div class="flex items-center gap-2">
             <span>📄</span>
-            <span>View Retrieved Evidence Chunks (<span id="chunks-count">3 chunks</span>)</span>
+            <span>Retrieved Context Evidence (<span id="chunks-count">3 chunks</span>)</span>
           </div>
           <span id="context-chevron" class="text-xs text-slate-400 transition-transform">▼</span>
         </button>
 
         <div id="context-drawer" class="hidden p-5 pt-0 space-y-3 border-t border-slate-100 dark:border-slate-800">
           <div id="chunks-container" class="space-y-3 pt-3">
-            
-            <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-blue-600 dark:text-blue-400">05_dependency_injection_system.md</span>
-                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold">Similarity: 0.942</span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
-                "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched."
-              </p>
-            </div>
-
-            <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
-              <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-blue-600 dark:text-blue-400">09_sql_databases_and_async_sessions.md</span>
-                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold">Similarity: 0.887</span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
-                "Using async yield dependencies guarantees database session cleanup. When the request completes, FastAPI safely calls session.close()."
-              </p>
-            </div>
-
+            <!-- Dynamic Chunks Inserted Here -->
           </div>
         </div>
       </div>
@@ -286,38 +304,42 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- Simple Value Section: Why RAGOps Matters   -->
+    <!-- Experiment Comparison: Why Quality Gates   -->
     <!-- ========================================== -->
     <div class="space-y-4 pt-4">
       <div class="text-center space-y-1">
-        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Why Quality Gates Matter</h3>
-        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Ek chhota sa config badlav AI ko galat answers dene par majboor kar sakta hai.</p>
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Why Quality Gates Matter in CI/CD</h3>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+          A subtle configuration change can silently degrade retrieval and trigger hallucinations. Quality gates catch regressions before release.
+        </p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
-        <!-- Bad Config -->
+        <!-- Failing Suboptimal Config -->
         <div class="ui-card p-5 rounded-2xl border-l-4 border-l-rose-500 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Suboptimal Config</span>
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">BLOCKED ❌</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Suboptimal Config (Regressed)</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">CI BLOCKED ❌</span>
           </div>
           <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">Chunk Size 500 · Top-k 3</div>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Large chunks aur shallow retrieval context miss karte hain. Hallucination rate <strong>27.7%</strong> pahunch jata hai. RAGOps isko CI mein hi pakad leta hai!
+            Large chunk size and shallow retrieval miss critical sub-sections. Recall drops to <strong>0.6610</strong> (&lt; 0.90) and Hallucination spikes to <strong>0.2770</strong> (&gt; 0.02). RAGOps automatically fails the GitHub Actions workflow.
           </p>
+          <div class="text-[11px] font-mono text-rose-500 pt-1">Report: reports/eval_regressed.json</div>
         </div>
 
-        <!-- Good Config -->
+        <!-- Passing Tuned Config -->
         <div class="ui-card p-5 rounded-2xl border-l-4 border-l-emerald-500 space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Production Config</span>
-            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">PASSED ✓</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Production Tuned Config</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">CI PASSED ✓</span>
           </div>
           <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">Chunk Size 300 · Top-k 5</div>
           <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-            Optimal recursive chunking aur deep retrieval complete evidence provide karte hain. Hallucination rate sirf <strong>0.5%</strong> rehta hai.
+            Optimal recursive chunking (60 overlap) with top-k 5 retrieval ensures complete evidence coverage. Context Recall reaches <strong>0.9772</strong> (&ge; 0.90) and Hallucination is minimized to <strong>0.0050</strong> (&le; 0.02).
           </p>
+          <div class="text-[11px] font-mono text-emerald-500 pt-1">Report: reports/eval_real.json</div>
         </div>
 
       </div>
@@ -331,18 +353,18 @@
   <footer class="ui-card border-t mt-12 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
     <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
       <span>RAGOps · Automated RAG Evaluation & CI/CD Guardrails</span>
-      <span>Built with ❤️ by <a href="https://github.com/iitking" target="_blank" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">Nivesh Kumar Meena</a> · MIT License</span>
+      <span>Engineered by <a href="https://github.com/iitking" target="_blank" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">Nivesh Kumar Meena</a> · MIT License</span>
     </div>
   </footer>
 
   <!-- ========================================== -->
-  <!-- Lightweight Interactive Script             -->
+  <!-- Client JavaScript Logic                    -->
   <!-- ========================================== -->
   <script>
     // Theme Management (Light / Dark)
     function initTheme() {
       const saved = localStorage.getItem('ragops-theme');
-      const isDark = saved ? saved === 'dark' : true; // Default dark
+      const isDark = saved ? saved === 'dark' : true;
       applyTheme(isDark);
     }
 
@@ -364,9 +386,9 @@
     }
 
     // Toggle Collapsible Sections
-    function toggleSection(id) {
-      const el = document.getElementById(id);
-      const chevron = document.getElementById('context-chevron');
+    function toggleSection(contentId, chevronId) {
+      const el = document.getElementById(contentId);
+      const chevron = document.getElementById(chevronId);
       if (el.classList.contains('hidden')) {
         el.classList.remove('hidden');
         if (chevron) chevron.style.transform = 'rotate(180deg)';
@@ -376,25 +398,36 @@
       }
     }
 
-    // Preset Queries Data
+    // Comprehensive Scenarios Data
     const demoData = [
+      // 0: Healthy Passing Query
       {
         question: "How does FastAPI handle asynchronous dependency injection with yield?",
-        answer: `<p>FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle is executed in two predictable phases:</p>
+        answer: `<p>FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle executes in two distinct phases:</p>
         <ul class="list-disc pl-5 space-y-1.5 text-sm mt-2">
-          <li><strong>Resource Setup (Before Yield):</strong> Code prior to <code>yield</code> runs before the route handler, instantiating database sessions directly on the asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.</li>
-          <li><strong>Automatic Teardown (After Yield):</strong> Once the response is sent, execution resumes after <code>yield</code> to safely close connections (e.g. <code>session.close()</code>), even if an exception was raised <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.</li>
+          <li><strong>Resource Setup (Before Yield):</strong> Code executed prior to <code>yield</code> runs before the route handler, initializing asynchronous resources (e.g. database sessions) directly on the asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.</li>
+          <li><strong>Teardown & Cleanup (After Yield):</strong> Following response dispatch, execution resumes after <code>yield</code> to guarantee cleanup (e.g. <code>session.close()</code>), even if an unhandled exception occurred <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.</li>
         </ul>`,
-        faithfulness: "99.5%",
-        hallucination: "0.5%",
-        recall: "97.7%",
+        isPassing: true,
+        latency: "1,254 ms",
+        faithfulness: "1.000 (100%)",
+        hallucination: "0.000 (0%)",
+        recall: "0.980 (98%)",
         gate: "PASSED ✓",
+        gateSubtext: "Approved for Deploy",
+        claims: [
+          { text: "FastAPI supports asynchronous dependency injection using yield expressions.", supported: true, ref: "Doc 05" },
+          { text: "Code prior to yield executes before the route handler starts.", supported: true, ref: "Doc 05" },
+          { text: "Cleanup code after yield runs unconditionally even if an exception occurs.", supported: true, ref: "Doc 09" }
+        ],
         chunks: [
           { doc: "05_dependency_injection_system.md", sim: "0.942", text: "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched." },
           { doc: "09_sql_databases_and_async_sessions.md", sim: "0.887", text: "Using async yield dependencies guarantees database session cleanup. When the request completes, FastAPI safely calls session.close()." },
           { doc: "14_concurrency_async_await_threadpool.md", sim: "0.814", text: "Async dependencies defined with 'async def' execute directly inside Starlette's asyncio event loop, bypassing threadpool overhead." }
         ]
       },
+
+      // 1: OAuth2 JWT Security Passing Query
       {
         question: "How do I secure FastAPI endpoints with OAuth2 and JWT tokens?",
         answer: `<p>FastAPI secures endpoints using <code>OAuth2PasswordBearer</code> and JWT tokens. Incoming HTTP requests pass through an authentication dependency:</p>
@@ -402,26 +435,62 @@
           <li><strong>Bearer Token Extraction:</strong> <code>OAuth2PasswordBearer(tokenUrl='token')</code> extracts the Bearer token from the <code>Authorization</code> header <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 06: Security]</span>.</li>
           <li><strong>Cryptographic Verification:</strong> <code>get_current_user</code> decodes the JWT using <code>python-jose</code> with your secret key and algorithm (HS256), validating token expiry <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 06: Security]</span>.</li>
         </ul>`,
-        faithfulness: "98.8%",
-        hallucination: "1.2%",
-        recall: "96.5%",
+        isPassing: true,
+        latency: "1,180 ms",
+        faithfulness: "1.000 (100%)",
+        hallucination: "0.000 (0%)",
+        recall: "0.965 (96%)",
         gate: "PASSED ✓",
+        gateSubtext: "Approved for Deploy",
+        claims: [
+          { text: "OAuth2PasswordBearer defines the authentication URL endpoint and extracts tokens.", supported: true, ref: "Doc 06" },
+          { text: "JWT tokens are cryptographically decoded and validated using secret keys.", supported: true, ref: "Doc 06" }
+        ],
         chunks: [
           { doc: "06_security_oauth2_jwt_tokens.md", sim: "0.961", text: "OAuth2PasswordBearer defines the token URL. Injected into Depends(), it extracts the Authorization header Bearer token from incoming requests." },
           { doc: "06_security_oauth2_jwt_tokens.md", sim: "0.923", text: "Tokens are signed using python-jose (HS256) with a secret key. get_current_user decodes the token and validates expiration timestamps." }
         ]
       },
+
+      // 2: Out-of-Domain Refusal Passing Query
       {
         question: "What is the return and refund policy for quantum computing hardware?",
         answer: `<p class="text-amber-600 dark:text-amber-400 font-medium">⚠️ Information Not Available in Document Corpus</p>
         <p class="mt-1">I do not have sufficient information in the provided technical documentation to answer this question. The indexed corpus covers FastAPI technical architecture and employee policies. The model has deliberately declined to hallucinate ungrounded specifications.</p>`,
-        faithfulness: "100.0%",
-        hallucination: "0.0%",
-        recall: "100.0%",
+        isPassing: true,
+        latency: "840 ms",
+        faithfulness: "1.000 (100%)",
+        hallucination: "0.000 (0%)",
+        recall: "1.000 (100%)",
         gate: "PASSED ✓",
+        gateSubtext: "Refusal Grounded",
+        claims: [
+          { text: "The provided corpus does not contain quantum computing refund policies.", supported: true, ref: "Refusal Verified" },
+          { text: "Model properly declined to fabricate ungrounded answers.", supported: true, ref: "Refusal Verified" }
+        ],
         chunks: [
           { doc: "01_fastapi_intro_and_architecture.md", sim: "0.312", text: "FastAPI is a modern, fast web framework for building APIs with Python 3.8+." },
           { doc: "hr_policy.txt", sim: "0.284", text: "Employees are entitled to 20 paid leave days annually." }
+        ]
+      },
+
+      // 3: Regressed Failing Query (The Core Demo!)
+      {
+        question: "What database encryption standard does FastAPI natively enforce for SQL databases?",
+        answer: `<p>FastAPI connects to SQL databases using SQLAlchemy sessions. Additionally, FastAPI automatically enforces hardware-level AES-256 encryption on all relational databases through built-in cryptographic driver tokens.</p>`,
+        isPassing: false,
+        latency: "1,629 ms",
+        faithfulness: "0.500 (50.0%)",
+        hallucination: "0.500 (50.0%)",
+        recall: "0.661 (66.1%)",
+        gate: "BLOCKED ❌",
+        gateSubtext: "Violates Gate Thresholds",
+        claims: [
+          { text: "FastAPI connects to SQL databases using SQLAlchemy sessions.", supported: true, ref: "Doc 09" },
+          { text: "FastAPI automatically enforces hardware-level AES-256 encryption on relational databases.", supported: false, ref: "UNSUPPORTED HALLUCINATION" }
+        ],
+        chunks: [
+          { doc: "09_sql_databases_and_async_sessions.md", sim: "0.712", text: "FastAPI integrates with SQL databases using SQLAlchemy async sessions. Connection configuration is supplied via DATABASE_URL." }
         ]
       }
     ];
@@ -446,7 +515,6 @@
       label.textContent = "Retrieving & Verifying...";
 
       try {
-        // Try live backend first
         const resp = await fetch('/query', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -458,31 +526,73 @@
           renderLiveResult(data);
           btn.disabled = false;
           spinner.classList.add('hidden');
-          label.textContent = "Ask RAGOps";
+          label.textContent = "Run RAG Query";
           return;
         }
-      } catch (err) {
-        // Graceful fallback to demo data if offline
-      }
+      } catch (err) {}
 
-      // Fallback to closest demo question or default
+      // Fallback matching
       setTimeout(() => {
         let match = demoData.find(d => d.question.toLowerCase().includes(question.toLowerCase().slice(0, 15))) || demoData[0];
         renderResult(match);
         btn.disabled = false;
         spinner.classList.add('hidden');
-        label.textContent = "Ask RAGOps";
-      }, 500);
+        label.textContent = "Run RAG Query";
+      }, 450);
     }
 
     function renderResult(item) {
       document.getElementById('answer-body').innerHTML = item.answer;
+      document.getElementById('latency-pill').textContent = `⏱️ ${item.latency}`;
       document.getElementById('metric-faithfulness').textContent = item.faithfulness;
       document.getElementById('metric-hallucination').textContent = item.hallucination;
       document.getElementById('metric-recall').textContent = item.recall;
       document.getElementById('metric-gate').textContent = item.gate;
+      document.getElementById('metric-gate-subtext').textContent = item.gateSubtext;
       document.getElementById('chunks-count').textContent = item.chunks.length + ' chunks';
 
+      // Status indicator & Regression Alert Styling
+      const alertBanner = document.getElementById('regression-alert-banner');
+      const dot = document.getElementById('status-indicator-dot');
+      const faithfulnessEl = document.getElementById('metric-faithfulness');
+      const hallucEl = document.getElementById('metric-hallucination');
+      const recallEl = document.getElementById('metric-recall');
+      const gateEl = document.getElementById('metric-gate');
+
+      if (item.isPassing) {
+        alertBanner.classList.add('hidden');
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        faithfulnessEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+        hallucEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+        recallEl.className = "text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 font-mono";
+        gateEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+      } else {
+        alertBanner.classList.remove('hidden');
+        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+        faithfulnessEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+        hallucEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+        recallEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+        gateEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+      }
+
+      // Render Claims Breakdown
+      const supportedCount = item.claims.filter(c => c.supported).length;
+      document.getElementById('claims-count-badge').textContent = `${supportedCount} / ${item.claims.length} Supported`;
+      
+      const claimsContainer = document.getElementById('claims-list-container');
+      claimsContainer.innerHTML = item.claims.map(c => `
+        <div class="p-2.5 rounded-xl ${c.supported ? 'bg-emerald-500/5 border border-emerald-500/20 text-slate-700 dark:text-slate-300' : 'bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300'} text-xs flex items-start justify-between gap-3">
+          <div class="flex items-start gap-2">
+            <span class="${c.supported ? 'text-emerald-500' : 'text-rose-500'} font-bold text-sm">${c.supported ? '✓' : '✕'}</span>
+            <span>"${c.text}"</span>
+          </div>
+          <span class="font-mono text-[10px] px-2 py-0.5 rounded ${c.supported ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold'} whitespace-nowrap">
+            ${c.ref}
+          </span>
+        </div>
+      `).join('');
+
+      // Render Chunks Breakdown
       const chunksContainer = document.getElementById('chunks-container');
       chunksContainer.innerHTML = item.chunks.map(c => `
         <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
@@ -525,22 +635,20 @@
       setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
-    // Check Backend Health on load
     async function checkHealth() {
       try {
         const res = await fetch('/health');
         if (res.ok) {
           const d = await res.json();
-          document.getElementById('backend-status-text').textContent = `FastAPI Connected · ${d.indexed_chunks || 158} Chunks (${d.embedding_provider || 'sentence-transformers'})`;
+          document.getElementById('backend-status-text').textContent = `FastAPI Ready · ${d.indexed_chunks || 158} Chunks (${d.embedding_provider || 'sentence-transformers'})`;
         }
-      } catch (e) {
-        // Standalone mode is fine
-      }
+      } catch (e) {}
     }
 
-    // Initialize Theme and Health on load
+    // Initialize UI on load
     initTheme();
     checkHealth();
+    renderResult(demoData[0]);
   </script>
 </body>
 </html>
