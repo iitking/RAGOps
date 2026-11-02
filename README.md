@@ -212,6 +212,7 @@ cp .env.example .env
 | **Verify Quality Gates** | `python3 -m app.evaluation.quality_gates --report reports/eval_real.json` |
 | **Test Gate Failure** | `python3 -m app.evaluation.quality_gates --report reports/eval_regressed.json` |
 | **Start FastAPI Server** | `python3 -m uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload` |
+| **Open Web Dashboard** | Open `http://localhost:8000/` or `http://localhost:8000/ui` in browser |
 | **Run Docker Services** | `docker compose up --build` |
 
 ---
@@ -235,6 +236,7 @@ The CI pipeline (`.github/workflows/rag-evaluation.yml`) is split into two autom
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
+| `GET` | `/` / `/ui` | Interactive animated visual dashboard & RAG pipeline visualizer |
 | `GET` | `/health` | Readiness probe reporting vector count and provider configurations |
 | `POST` | `/ingest` | Ingest raw documents or inline payloads into the vector store |
 | `POST` | `/query` | Retrieve evidence chunks and generate answer with source citations |

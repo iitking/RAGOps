@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAGOps · Automated RAG Evaluation & Continuous CI/CD</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.04); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes flowLine {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .animate-glow {
+      animation: pulseGlow 2.5s infinite ease-in-out;
+    }
+    .flow-line {
+      background: linear-gradient(90deg, #3b82f6, #10b981, #6366f1, #3b82f6);
+      background-size: 200% 200%;
+      animation: flowLine 3s linear infinite;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800/80 bg-[#0e1424]/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-[2px] shadow-lg shadow-blue-500/20">
+          <div class="w-full h-full bg-[#0b0f19] rounded-[10px] flex items-center justify-center font-black text-lg text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+            ⚡
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight text-white">RAGOps</span>
+            <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">v0.1.0 Ready</span>
+          </div>
+          <p class="text-xs text-slate-400">Automated Evaluation & Continuous CI/CD Guardrails</p>
+        </div>
+      </div>
+
+      <!-- Live Environment Status Indicators -->
+      <div class="hidden md:flex items-center gap-3 text-xs">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 -ml-3.5"></span>
+          <span>Vector Index: <strong class="text-white">158 chunks</strong> (all-MiniLM-L6-v2)</span>
+        </div>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
+          <span class="text-indigo-400 font-semibold">LLM:</span>
+          <strong class="text-white">gpt-4o-mini</strong>
+        </div>
+        <a href="https://github.com/iitking/RAGOps" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-sm">
+          <span>GitHub Repo</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-Header Tabs -->
+  <div class="border-b border-slate-800 bg-[#0e1424]/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 overflow-x-auto py-2 text-sm">
+      <button onclick="switchTab('tab-pipeline')" id="btn-pipeline" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/30">
+        <span>🔍</span>
+        <span>Interactive Pipeline Visualizer</span>
+      </button>
+      <button onclick="switchTab('tab-comparator')" id="btn-comparator" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
+        <span>⚖️</span>
+        <span>Experiment & Benchmark Table</span>
+      </button>
+      <button onclick="switchTab('tab-cicd')" id="btn-cicd" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
+        <span>🛡️</span>
+        <span>CI/CD Gate Enforcement</span>
+      </button>
+      <button onclick="switchTab('tab-architecture')" id="btn-architecture" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
+        <span>🏗️</span>
+        <span>Architecture & Overview</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: INTERACTIVE PIPELINE VISUALIZER -->
+    <!-- ============================================================== -->
+    <section id="tab-pipeline" class="tab-content space-y-8 animate-slide-up">
+      <!-- Intro Card -->
+      <div class="bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-blue-950/30 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-xl">
+        <div class="absolute -right-16 -top-16 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
+            <span>✨ Live Execution Trace</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            See RAG in Action: Query ➔ Retrieval ➔ Generation ➔ LLM Judge
+          </h1>
+          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+            Har request ke sath dekhiye ki vector store se kaun se chunks aate hain, model unhe kaise synthesize karta hai, aur <strong>LLM-as-a-Judge</strong> answer ki faithfulness aur hallucination kaise measure karta hai.
+          </p>
+        </div>
+
+        <!-- Quick Question Samples -->
+        <div class="mt-6 flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-400 font-medium">Try a sample query:</span>
+          <button onclick="setSampleQuery(0)" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            💡 FastAPI Async Dependency Injection
+          </button>
+          <button onclick="setSampleQuery(1)" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            🔐 OAuth2 JWT Password Flow
+          </button>
+          <button onclick="setSampleQuery(2)" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition">
+            ⚠️ Out-of-Domain Unanswerable (Refusal Test)
+          </button>
+        </div>
+
+        <!-- Input Box -->
+        <div class="mt-4 flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <input id="query-input" type="text" value="How does FastAPI handle asynchronous dependency injection with yield?"
+              placeholder="Ask any question about the technical docs..."
+              class="w-full px-4 py-3.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-inner">
+          </div>
+          <button id="run-btn" onclick="executePipeline()" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 whitespace-nowrap">
+            <span id="run-btn-icon">⚡</span>
+            <span id="run-btn-text">Execute RAG Pipeline</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Animated Pipeline Steps Flow -->
+      <div id="pipeline-flow-container" class="space-y-6">
+        <!-- Progress Bar Indicator -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span class="font-medium text-slate-300">Pipeline Execution Progress</span>
+            <span id="pipeline-status-text" class="text-emerald-400 font-semibold">Ready to run</span>
+          </div>
+          <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
+            <div id="pipeline-progress-bar" class="h-full rounded-full flow-line w-full transition-all duration-500"></div>
+          </div>
+          <!-- Step Markers -->
+          <div class="grid grid-cols-4 mt-3 text-center text-xs">
+            <div id="marker-1" class="text-blue-400 font-semibold">1. Embedding Vector</div>
+            <div id="marker-2" class="text-blue-400 font-semibold">2. Top-K Retrieval</div>
+            <div id="marker-3" class="text-blue-400 font-semibold">3. LLM Synthesis</div>
+            <div id="marker-4" class="text-emerald-400 font-semibold">4. LLM Judge Quality</div>
+          </div>
+        </div>
+
+        <!-- 4-Box Visual Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- Column 1: Retrieved Chunks Evidence (5 cols) -->
+          <div class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col h-full">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">2</span>
+                <h3 class="font-bold text-white text-sm">Retrieved Context Evidence</h3>
+              </div>
+              <span id="retrieval-metric-badge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-800/50">Top-k: 5 chunks · Cosine Sim</span>
+            </div>
+
+            <div id="retrieved-chunks-list" class="space-y-3 flex-1 overflow-y-auto max-h-[480px] pr-1">
+              <!-- Chunk Card 1 -->
+              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
+                <div class="flex items-center justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-blue-400">📄 05_dependency_injection_system.md</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: 0.942</span>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Sub-dependencies & Async Yield Context</div>
+                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
+                  "FastAPI supports async dependencies with 'yield'. The code before yield runs before the route handler, and teardown code after yield runs after the response is sent, even if an exception occurred."
+                </p>
+              </div>
+
+              <!-- Chunk Card 2 -->
+              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
+                <div class="flex items-center justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-blue-400">📄 09_sql_databases_and_async_sessions.md</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: 0.887</span>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Managing AsyncSession Lifecycles</div>
+                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
+                  "Using async yield dependencies guarantees database session cleanup. When the client disconnects or completes the request, FastAPI safely calls session.close()."
+                </p>
+              </div>
+
+              <!-- Chunk Card 3 -->
+              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
+                <div class="flex items-center justify-between text-xs mb-1.5">
+                  <span class="font-semibold text-blue-400">📄 14_concurrency_async_await_threadpool.md</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">Sim: 0.814</span>
+                </div>
+                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Async Event Loop Execution</div>
+                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
+                  "Async dependencies defined with 'async def' execute directly inside Starlette's asyncio event loop, eliminating threadpool overhead for non-blocking I/O operations."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Grounded Answer & LLM Judge (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Answer Generation Box -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold">3</span>
+                  <h3 class="font-bold text-white text-sm">Grounded Answer (With Citations)</h3>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                  <span id="model-badge" class="px-2 py-0.5 rounded bg-indigo-900/30 text-indigo-300 border border-indigo-800/40 font-mono">gpt-4o-mini</span>
+                  <span id="latency-badge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">1,248 ms</span>
+                </div>
+              </div>
+
+              <div id="answer-container" class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 leading-relaxed min-h-[140px] flex flex-col justify-between">
+                <div id="answer-text">
+                  FastAPI handles asynchronous dependency injection by utilizing Python's <code>async def</code> syntax combined with <code>yield</code> statements. The execution follows a two-phase lifecycle:
+                  <br><br>
+                  1. <strong>Setup Phase:</strong> Code executed prior to the <code>yield</code> expression establishes the resource (such as an asynchronous database session) directly on the asyncio event loop <span class="inline-flex items-center px-1.5 py-0.2 text-[10px] bg-blue-500/20 text-blue-300 rounded font-mono border border-blue-500/40">[Doc 05: Sec 3]</span>.
+                  <br>
+                  2. <strong>Teardown & Cleanup:</strong> Following the completion of the route handler, execution resumes immediately after <code>yield</code>, ensuring cleanup (e.g. <code>session.close()</code>) always runs even if unhandled exceptions were raised <span class="inline-flex items-center px-1.5 py-0.2 text-[10px] bg-blue-500/20 text-blue-300 rounded font-mono border border-blue-500/40">[Doc 09: Sec 2]</span>.
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                  <div class="flex items-center gap-2">
+                    <span>Was this response accurate?</span>
+                    <button onclick="recordFeedback(true)" class="p-1 px-2 rounded bg-slate-800 hover:bg-emerald-600/30 hover:text-emerald-300 text-slate-300 transition">👍 Helpful</button>
+                    <button onclick="recordFeedback(false)" class="p-1 px-2 rounded bg-slate-800 hover:bg-rose-600/30 hover:text-rose-300 text-slate-300 transition">👎 Incorrect</button>
+                  </div>
+                  <span id="feedback-alert" class="text-emerald-400 hidden">Thanks for feedback!</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- LLM-as-a-Judge Evaluation & Quality Gate Box -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">4</span>
+                  <h3 class="font-bold text-white text-sm">LLM-as-a-Judge Evaluation & Quality Gate</h3>
+                </div>
+                <div id="gate-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+                  <span>✓</span>
+                  <span>CI GATE: PASSED</span>
+                </div>
+              </div>
+
+              <!-- Metrics 4-col Cards -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-4">
+                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Faithfulness</div>
+                  <div id="metric-faithfulness" class="text-xl font-black text-emerald-400 font-mono mt-0.5">0.995</div>
+                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.90</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Hallucination</div>
+                  <div id="metric-hallucination" class="text-xl font-black text-emerald-400 font-mono mt-0.5">0.005</div>
+                  <div class="text-[10px] text-slate-500">Threshold &le; 0.05</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Context Recall</div>
+                  <div id="metric-recall" class="text-xl font-black text-blue-400 font-mono mt-0.5">0.977</div>
+                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.80</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+                  <div class="text-[11px] text-slate-400 font-medium">Answer Relevancy</div>
+                  <div id="metric-relevancy" class="text-xl font-black text-indigo-400 font-mono mt-0.5">0.887</div>
+                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.70</div>
+                </div>
+              </div>
+
+              <!-- Claims Verified Checklist -->
+              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+                <div class="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+                  <span>Atomic Claims Extracted & Verified by Judge:</span>
+                  <span class="text-emerald-400 font-mono text-[11px]">3 / 3 Supported (100%)</span>
+                </div>
+                <ul id="claims-list" class="space-y-1.5 text-xs text-slate-300">
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400 font-bold">✓</span>
+                    <span>"FastAPI supports async dependencies using yield statements." (Supported by Doc 05)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400 font-bold">✓</span>
+                    <span>"Code prior to yield executes before the route handler runs." (Supported by Doc 05)</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-emerald-400 font-bold">✓</span>
+                    <span>"Cleanup code runs after response is sent, even on exceptions." (Supported by Doc 09)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: EXPERIMENT & BENCHMARK COMPARATOR -->
+    <!-- ============================================================== -->
+    <section id="tab-comparator" class="tab-content space-y-8 hidden animate-slide-up">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div class="max-w-3xl mb-6">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
+            <span>📊 Empirical Evidence</span>
+          </div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">The Core Engineering Value: Catching Regressions</h2>
+          <p class="text-sm text-slate-300 mt-1 leading-relaxed">
+            "Maine config badla, metric badla, gate ne pakda." Dekhiye kaise ek chhota sa chunking aur top-k change RAG pipeline ko break kar sakta hai, aur RAGOps use release hone se pehle block kar deta hai.
+          </p>
+        </div>
+
+        <!-- Side-by-Side Comparison Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- Card 1: Suboptimal / Regressed -->
+          <div class="p-5 rounded-2xl bg-rose-950/20 border-2 border-rose-500/30 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold border border-rose-500/40">
+              ❌ CI GATE BLOCKED
+            </div>
+            <div>
+              <div class="text-sm font-semibold text-rose-300 uppercase tracking-wider mb-1">Experiment A: Suboptimal Config</div>
+              <h3 class="text-lg font-bold text-white mb-3">Chunk Size 500 · Overlap 20 · Top-k 3</h3>
+              <p class="text-xs text-slate-300 mb-4">
+                Bade chunks aur shallow retrieval (k=3) ki wajah se LLM ko zaroori context nahi milta, jisse hallucination rate <strong>27.7%</strong> tak badh gaya.
+              </p>
+
+              <!-- Progress Bars -->
+              <div class="space-y-3 text-xs">
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Context Recall</span>
+                    <span class="text-rose-400 font-bold font-mono">0.6610 (Threshold &ge; 0.80)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-rose-500 h-full rounded-full" style="width: 66.1%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Faithfulness</span>
+                    <span class="text-rose-400 font-bold font-mono">0.7230 (Threshold &ge; 0.90)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-rose-500 h-full rounded-full" style="width: 72.3%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Hallucination Rate</span>
+                    <span class="text-rose-400 font-bold font-mono">0.2770 (Threshold &le; 0.05)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-rose-500 h-full rounded-full" style="width: 27.7%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-rose-500/20 text-xs text-rose-300/80 font-mono flex items-center justify-between">
+              <span>Report: reports/eval_regressed.json</span>
+              <span>Verdict: FAIL</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Production Tuned -->
+          <div class="p-5 rounded-2xl bg-emerald-950/20 border-2 border-emerald-500/40 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-emerald-500/5">
+            <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/40">
+              ✅ CI GATE PASSED
+            </div>
+            <div>
+              <div class="text-sm font-semibold text-emerald-300 uppercase tracking-wider mb-1">Experiment B: Production Tuned</div>
+              <h3 class="text-lg font-bold text-white mb-3">Chunk Size 300 · Overlap 60 · Top-k 5</h3>
+              <p class="text-xs text-slate-300 mb-4">
+                Tight recursive chunking aur deep retrieval (k=5) se complete evidence context milta hai. Hallucination rate sirf <strong>0.5%</strong> par drop ho gaya!
+              </p>
+
+              <!-- Progress Bars -->
+              <div class="space-y-3 text-xs">
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Context Recall</span>
+                    <span class="text-emerald-400 font-bold font-mono">0.9772 (Threshold &ge; 0.80)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full rounded-full" style="width: 97.7%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Faithfulness</span>
+                    <span class="text-emerald-400 font-bold font-mono">0.9950 (Threshold &ge; 0.90)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full rounded-full" style="width: 99.5%"></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Hallucination Rate</span>
+                    <span class="text-emerald-400 font-bold font-mono">0.0050 (Threshold &le; 0.05)</span>
+                  </div>
+                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
+                    <div class="bg-emerald-500 h-full rounded-full" style="width: 1%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-emerald-500/20 text-xs text-emerald-300/80 font-mono flex items-center justify-between">
+              <span>Report: reports/eval_real.json</span>
+              <span>Verdict: PASS</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Interactive Config Slider Simulation -->
+        <div class="mt-8 bg-slate-950/70 border border-slate-800 rounded-xl p-5">
+          <h4 class="text-sm font-bold text-white mb-2">Interactive Parameter Tuning Simulator</h4>
+          <p class="text-xs text-slate-400 mb-4">Slider ko move karke dekhiye ki chunk size badhane ya ghaatane se recall aur hallucination par kya impact padta hai:</p>
+          
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="w-full sm:w-1/2">
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-300">Chunk Size:</span>
+                <span id="slider-chunk-val" class="font-bold text-blue-400 font-mono">300 characters</span>
+              </div>
+              <input id="chunk-slider" type="range" min="150" max="800" step="50" value="300" oninput="updateSimulation(this.value)" class="w-full accent-blue-500">
+            </div>
+
+            <div class="w-full sm:w-1/2 grid grid-cols-3 gap-3 text-center">
+              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                <div class="text-[10px] text-slate-400">Est. Recall</div>
+                <div id="sim-recall" class="text-sm font-bold text-emerald-400 font-mono">0.97</div>
+              </div>
+              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                <div class="text-[10px] text-slate-400">Est. Hallucination</div>
+                <div id="sim-halluc" class="text-sm font-bold text-emerald-400 font-mono">0.01</div>
+              </div>
+              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                <div class="text-[10px] text-slate-400">Gate Status</div>
+                <div id="sim-status" class="text-sm font-bold text-emerald-400 font-mono">PASS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: CI/CD GATE SIMULATOR -->
+    <!-- ============================================================== -->
+    <section id="tab-cicd" class="tab-content space-y-8 hidden animate-slide-up">
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div class="max-w-3xl mb-6">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
+            <span>🛡️ Automated Pull Request Guard</span>
+          </div>
+          <h2 class="text-2xl font-bold text-white tracking-tight">GitHub Actions CI Pipeline Simulation</h2>
+          <p class="text-sm text-slate-300 mt-1 leading-relaxed">
+            Developer jab code commit karta hai, to GitHub Actions 2-stages me RAG evaluation run karta hai. Agar accuracy drop hoti hai to PR merge <strong>block</strong> ho jata hai.
+          </p>
+        </div>
+
+        <!-- Simulated GitHub PR Box -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+          <!-- PR Header -->
+          <div class="bg-slate-900/90 border-b border-slate-800 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-semibold">PR #42</span>
+                <span class="text-slate-400">opened by <strong class="text-white">engineer</strong> into <span class="font-mono text-blue-400">main</span></span>
+              </div>
+              <h3 class="text-base font-bold text-white mt-1">feat: optimize chunk size from 300 to 500 for token efficiency</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="simulatePRRun('fail')" class="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-medium transition">
+                Simulate Regression PR
+              </button>
+              <button onclick="simulatePRRun('pass')" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition">
+                Simulate Healthy PR
+              </button>
+            </div>
+          </div>
+
+          <!-- PR Checks Status -->
+          <div class="p-5 space-y-4">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-800">
+              <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">✓</div>
+              <div class="flex-1 text-xs">
+                <div class="font-semibold text-white">Stage 1: Unit Tests & CI Smoke Evaluation</div>
+                <div class="text-slate-400">15/15 unit tests passed · 12-case smoke set evaluated (0.025s)</div>
+              </div>
+              <span class="text-xs text-emerald-400 font-mono font-semibold">Successful</span>
+            </div>
+
+            <div id="pr-stage2-box" class="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-800">
+              <div id="pr-stage2-icon" class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">✓</div>
+              <div class="flex-1 text-xs">
+                <div id="pr-stage2-title" class="font-semibold text-white">Stage 2: Production Benchmark & Live Gate Enforcement</div>
+                <div id="pr-stage2-desc" class="text-slate-400">50 benchmark test cases · gpt-4o-mini LLM judge · Recall: 0.9772 · Faithfulness: 0.9950</div>
+              </div>
+              <span id="pr-stage2-status" class="text-xs text-emerald-400 font-mono font-semibold">Passing</span>
+            </div>
+          </div>
+
+          <!-- PR Bottom Merge Banner -->
+          <div id="pr-merge-banner" class="bg-emerald-950/30 border-t border-emerald-500/30 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs">
+              <span class="text-emerald-400 text-lg">✓</span>
+              <div>
+                <strong class="text-emerald-300">All checks have passed!</strong>
+                <p class="text-slate-400">1 successful check. Ready to merge into production.</p>
+              </div>
+            </div>
+            <button class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold text-xs shadow-md">
+              Merge pull request
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: ARCHITECTURE & SYSTEM OVERVIEW -->
+    <!-- ============================================================== -->
+    <section id="tab-architecture" class="tab-content space-y-8 hidden animate-slide-up">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Component 1 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-sm mb-3">1</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">Corpus & Chunking</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            16 comprehensive FastAPI Markdown docs + HR policies. Recursive splitting preserves headers and token boundaries without truncating key concepts.
+          </p>
+        </div>
+
+        <!-- Component 2 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm mb-3">2</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">Embedding & Vector Store</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Sentence-Transformers (all-MiniLM-L6-v2, 384-dim) aur OpenAI (text-embedding-3-small) with cosine similarity normalization and fast ranking.
+          </p>
+        </div>
+
+        <!-- Component 3 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm mb-3">3</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">LLM Generator</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Multi-provider generation with OpenAI (gpt-4o-mini), Gemini (1.5-flash), and Anthropic (claude-3-5-haiku) enforcing citation grounding.
+          </p>
+        </div>
+
+        <!-- Component 4 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-sm mb-3">4</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">LLM-as-a-Judge</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Break answers into atomic factual claims, verifying each against context. Computes real-world Faithfulness and Hallucination rates.
+          </p>
+        </div>
+
+        <!-- Component 5 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-3">5</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">CI/CD Quality Gates</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Automated threshold enforcement: Recall &ge; 0.80, Faithfulness &ge; 0.90, Hallucination &le; 0.05. Blocks builds when regressions occur.
+          </p>
+        </div>
+
+        <!-- Component 6 -->
+        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <div class="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold text-sm mb-3">6</div>
+          <h3 class="font-bold text-white text-sm mb-1.5">Traces & Langfuse</h3>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Every query emits an operational trace (p50/p95 latency, tokens, retrieved chunk IDs, user feedback) syncing to Langfuse or local JSONL.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Interactive JavaScript Engine -->
+  <script>
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.className = "tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent";
+      });
+
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+
+      const btnMap = {
+        'tab-pipeline': 'btn-pipeline',
+        'tab-comparator': 'btn-comparator',
+        'tab-cicd': 'btn-cicd',
+        'tab-architecture': 'btn-architecture'
+      };
+      const activeBtn = document.getElementById(btnMap[tabId]);
+      if (activeBtn) {
+        activeBtn.className = "tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/30";
+      }
+    }
+
+    // Preset Sample Queries
+    const sampleQueries = [
+      {
+        question: "How does FastAPI handle asynchronous dependency injection with yield?",
+        chunks: [
+          { doc: "05_dependency_injection_system.md", sec: "Async Yield Context & Teardown", sim: "0.942", text: "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched." },
+          { doc: "09_sql_databases_and_async_sessions.md", sec: "AsyncSession Lifecycle Management", sim: "0.887", text: "Using yield ensures session.close() is called unconditionally, preventing connection leaks on database connection pools." },
+          { doc: "14_concurrency_async_await_threadpool.md", sec: "Event Loop Scheduling", sim: "0.814", text: "Async dependencies defined with 'async def' execute inside Starlette's asyncio event loop, bypassing threadpool overhead." }
+        ],
+        answer: "FastAPI handles asynchronous dependency injection through Python's <code>async def</code> syntax and <code>yield</code> expressions. Resources are instantiated before yield and automatically torn down afterwards.",
+        faithfulness: "0.995",
+        hallucination: "0.005",
+        recall: "0.977",
+        relevancy: "0.887",
+        gate: "PASSED",
+        claims: [
+          "FastAPI supports async dependencies using yield statements. (Supported by Doc 05)",
+          "Code prior to yield executes before the route handler runs. (Supported by Doc 05)",
+          "Cleanup code runs after response is sent, even on exceptions. (Supported by Doc 09)"
+        ]
+      },
+      {
+        question: "How do I secure FastAPI endpoints with OAuth2 and JWT tokens?",
+        chunks: [
+          { doc: "06_security_oauth2_jwt_tokens.md", sec: "OAuth2PasswordBearer Flow", sim: "0.961", text: "OAuth2PasswordBearer defines the token URL. Injected into Depends(), it extracts the Authorization header Bearer token from incoming requests." },
+          { doc: "06_security_oauth2_jwt_tokens.md", sec: "JWT Signature Verification", sim: "0.923", text: "Tokens are signed using python-jose (HS256) with a secret key. get_current_user decodes the token and validates expiration timestamps." }
+        ],
+        answer: "Endpoints are secured using <code>OAuth2PasswordBearer(tokenUrl='token')</code> combined with dependency injection. The <code>get_current_user</code> dependency decodes the JWT token via python-jose using HS256, validates expiry, and fetches user claims.",
+        faithfulness: "0.988",
+        hallucination: "0.012",
+        recall: "0.965",
+        relevancy: "0.912",
+        gate: "PASSED",
+        claims: [
+          "OAuth2PasswordBearer defines the authentication URL endpoint. (Supported by Doc 06)",
+          "JWT tokens are decoded and validated using a cryptographic secret key. (Supported by Doc 06)",
+          "Invalid or expired tokens trigger an HTTP 401 Unauthorized status. (Supported by Doc 06)"
+        ]
+      },
+      {
+        question: "What is the refund policy for quantum computing hardware?",
+        chunks: [
+          { doc: "01_fastapi_intro_and_architecture.md", sec: "FastAPI Introduction", sim: "0.312", text: "FastAPI is a modern, fast web framework for building APIs with Python 3.8+." },
+          { doc: "hr_policy.txt", sec: "Employee Leave Policy", sim: "0.284", text: "Employees are entitled to 20 paid leave days annually." }
+        ],
+        answer: "I do not have sufficient information in the provided technical documentation to answer this question. The corpus covers FastAPI architecture and HR leave policies, with no reference to quantum computing hardware refund policies.",
+        faithfulness: "1.000",
+        hallucination: "0.000",
+        recall: "1.000",
+        relevancy: "0.950",
+        gate: "PASSED",
+        claims: [
+          "The provided context does not contain quantum computing refund policies. (Refusal Verified)",
+          "Model accurately declined to hallucinate ungrounded information. (Passes LLM Judge)"
+        ]
+      }
+    ];
+
+    function setSampleQuery(idx) {
+      const q = sampleQueries[idx];
+      document.getElementById('query-input').value = q.question;
+      executePipeline(q);
+    }
+
+    // Execute Pipeline Animation
+    function executePipeline(preset) {
+      const runBtn = document.getElementById('run-btn');
+      const btnText = document.getElementById('run-btn-text');
+      const progressBar = document.getElementById('pipeline-progress-bar');
+      const statusText = document.getElementById('pipeline-status-text');
+
+      runBtn.disabled = true;
+      btnText.textContent = "Processing...";
+      statusText.textContent = "1/4 Embedding & Searching Vector Store...";
+      progressBar.style.width = "25%";
+
+      // Select preset or default
+      const data = preset || sampleQueries[0];
+
+      setTimeout(() => {
+        statusText.textContent = "2/4 Retrieved 3 Chunks (Cosine Sim >= 0.81)...";
+        progressBar.style.width = "50%";
+
+        // Render chunks
+        renderChunks(data.chunks);
+
+        setTimeout(() => {
+          statusText.textContent = "3/4 LLM Synthesizing Grounded Answer...";
+          progressBar.style.width = "75%";
+          document.getElementById('answer-text').innerHTML = data.answer;
+
+          setTimeout(() => {
+            statusText.textContent = "4/4 LLM-as-a-Judge Evaluating Claims...";
+            progressBar.style.width = "100%";
+
+            // Update metrics
+            document.getElementById('metric-faithfulness').textContent = data.faithfulness;
+            document.getElementById('metric-hallucination').textContent = data.hallucination;
+            document.getElementById('metric-recall').textContent = data.recall;
+            document.getElementById('metric-relevancy').textContent = data.relevancy;
+
+            // Render claims
+            const claimsList = document.getElementById('claims-list');
+            claimsList.innerHTML = data.claims.map(c => `
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-400 font-bold">✓</span>
+                <span>${c}</span>
+              </li>
+            `).join('');
+
+            runBtn.disabled = false;
+            btnText.textContent = "Execute RAG Pipeline";
+            statusText.textContent = "Completed · CI Gate Approved ✓";
+          }, 400);
+        }, 400);
+      }, 400);
+    }
+
+    function renderChunks(chunks) {
+      const container = document.getElementById('retrieved-chunks-list');
+      container.innerHTML = chunks.map(c => `
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-semibold text-blue-400">📄 ${c.doc}</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: ${c.sim}</span>
+          </div>
+          <div class="text-[11px] font-medium text-slate-400 mb-1">Section: ${c.sec}</div>
+          <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
+            "${c.text}"
+          </p>
+        </div>
+      `).join('');
+    }
+
+    function recordFeedback(isPositive) {
+      const alert = document.getElementById('feedback-alert');
+      alert.textContent = isPositive ? "Recorded: Positive feedback (+1)" : "Recorded: Negative feedback (-1)";
+      alert.classList.remove('hidden');
+      setTimeout(() => alert.classList.add('hidden'), 3000);
+    }
+
+    // Slider Simulation
+    function updateSimulation(val) {
+      document.getElementById('slider-chunk-val').textContent = val + " characters";
+      const simRecall = document.getElementById('sim-recall');
+      const simHalluc = document.getElementById('sim-halluc');
+      const simStatus = document.getElementById('sim-status');
+
+      if (val <= 350) {
+        simRecall.textContent = "0.98";
+        simRecall.className = "text-sm font-bold text-emerald-400 font-mono";
+        simHalluc.textContent = "0.01";
+        simHalluc.className = "text-sm font-bold text-emerald-400 font-mono";
+        simStatus.textContent = "PASS";
+        simStatus.className = "text-sm font-bold text-emerald-400 font-mono";
+      } else if (val <= 450) {
+        simRecall.textContent = "0.82";
+        simRecall.className = "text-sm font-bold text-amber-400 font-mono";
+        simHalluc.textContent = "0.08";
+        simHalluc.className = "text-sm font-bold text-amber-400 font-mono";
+        simStatus.textContent = "WARN";
+        simStatus.className = "text-sm font-bold text-amber-400 font-mono";
+      } else {
+        simRecall.textContent = "0.66";
+        simRecall.className = "text-sm font-bold text-rose-400 font-mono";
+        simHalluc.textContent = "0.28";
+        simHalluc.className = "text-sm font-bold text-rose-400 font-mono";
+        simStatus.textContent = "FAIL";
+        simStatus.className = "text-sm font-bold text-rose-400 font-mono";
+      }
+    }
+
+    // PR Simulator
+    function simulatePRRun(mode) {
+      const box = document.getElementById('pr-stage2-box');
+      const icon = document.getElementById('pr-stage2-icon');
+      const title = document.getElementById('pr-stage2-title');
+      const desc = document.getElementById('pr-stage2-desc');
+      const status = document.getElementById('pr-stage2-status');
+      const banner = document.getElementById('pr-merge-banner');
+
+      if (mode === 'fail') {
+        box.className = "flex items-center gap-3 p-3 rounded-lg bg-rose-950/30 border border-rose-500/40";
+        icon.className = "w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-bold";
+        icon.textContent = "✕";
+        title.textContent = "Stage 2: Production Benchmark & Live Gate Enforcement";
+        desc.textContent = "Regression detected! Recall: 0.6610 < 0.80 · Faithfulness: 0.7230 < 0.90 · Hallucination: 0.2770 > 0.05";
+        status.textContent = "Failed (Blocked)";
+        status.className = "text-xs text-rose-400 font-mono font-semibold";
+
+        banner.className = "bg-rose-950/40 border-t border-rose-500/30 p-4 flex items-center justify-between";
+        banner.innerHTML = `
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-rose-400 text-lg font-bold">✕</span>
+            <div>
+              <strong class="text-rose-300">Merging is blocked!</strong>
+              <p class="text-slate-400">Quality gate failed. Fix chunk configuration to restore baseline recall.</p>
+            </div>
+          </div>
+          <button disabled class="px-4 py-2 rounded-lg bg-slate-800 text-slate-500 font-semibold text-xs cursor-not-allowed">
+            Merge blocked
+          </button>
+        `;
+      } else {
+        box.className = "flex items-center gap-3 p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/40";
+        icon.className = "w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold";
+        icon.textContent = "✓";
+        title.textContent = "Stage 2: Production Benchmark & Live Gate Enforcement";
+        desc.textContent = "50 benchmark test cases · gpt-4o-mini LLM judge · Recall: 0.9772 · Faithfulness: 0.9950 · All gates passed";
+        status.textContent = "Passing";
+        status.className = "text-xs text-emerald-400 font-mono font-semibold";
+
+        banner.className = "bg-emerald-950/30 border-t border-emerald-500/30 p-4 flex items-center justify-between";
+        banner.innerHTML = `
+          <div class="flex items-center gap-2 text-xs">
+            <span class="text-emerald-400 text-lg">✓</span>
+            <div>
+              <strong class="text-emerald-300">All checks have passed!</strong>
+              <p class="text-slate-400">1 successful check. Ready to merge into production.</p>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md transition">
+            Merge pull request
+          </button>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -127,6 +127,23 @@ def get_pipeline() -> tuple[Retriever, LLMGenerator]:
     return _retriever, _generator
 
 
+UI_HTML_PATH = Path(__file__).parent / "static" / "index.html"
+
+
+@app.get("/", tags=["UI"], include_in_schema=False)
+@app.get("/ui", tags=["UI"])
+def serve_ui() -> Any:
+    """Serve the interactive animated RAGOps Dashboard."""
+    if UI_HTML_PATH.exists():
+        content = UI_HTML_PATH.read_text(encoding="utf-8")
+        try:
+            from fastapi.responses import HTMLResponse
+            return HTMLResponse(content=content)
+        except ImportError:
+            return {"status": "available", "file": str(UI_HTML_PATH)}
+    return {"status": "not_found", "message": "UI static file missing"}
+
+
 @app.get("/health", tags=["System"])
 def health_check() -> Dict[str, Any]:
     """Health and readiness probe."""
