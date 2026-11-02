@@ -8,33 +8,33 @@ An enterprise-grade Retrieval-Augmented Generation (RAG) platform that prevents 
 
 ```mermaid
 flowchart TD
-    A[Technical Corpus: 17 Markdown Docs & Policies] --> B[Ingestion & Normalization]
-    B --> C[Recursive Chunking & Section Spans]
-    C --> D[Embedding Model: Sentence Transformers / OpenAI]
-    D --> E[(Vector Store: Qdrant / In-Memory)]
+    A["Technical Corpus: 17 Markdown Docs & Policies"] --> B["Ingestion & Normalization"]
+    B --> C["Recursive Chunking & Section Spans"]
+    C --> D["Embedding Model: Sentence Transformers / OpenAI"]
+    D --> E[("Vector Store: Qdrant / In-Memory")]
 
-    U[User Query] --> K[FastAPI: POST /query]
-    K --> L[Retriever: Cosine Top-K = 5]
+    U["User Query"] --> K["FastAPI: POST /query"]
+    K --> L["Retriever: Cosine Top-K = 5"]
     E --> L
-    L --> M[Prompt Assembly with Grounded Evidence]
-    M --> N[LLM Generator: gpt-4o-mini / Gemini Flash]
-    N --> O[Answer + Source Citations]
-    O --> P[User Feedback: POST /feedback]
+    L --> M["Prompt Assembly with Grounded Evidence"]
+    M --> N["LLM Generator: gpt-4o-mini / Gemini Flash"]
+    N --> O["Answer + Source Citations"]
+    O --> P["User Feedback: POST /feedback"]
 
-    subgraph CI_CD_Pipeline [Continuous CI/CD Quality Gates]
-        J[Benchmark Dataset: 50 Cases (40 Gen + 10 Handcrafted)] --> Q[Evaluation Runner: run_eval.py]
+    subgraph CI_CD_Pipeline ["Continuous CI/CD Quality Gates"]
+        J["Benchmark Dataset: 50 Cases (40 Gen + 10 Handcrafted)"] --> Q["Evaluation Runner: run_eval.py"]
         L --> Q
         N --> Q
-        Q --> R[LLM-as-a-Judge: Claim Extraction & Grounding]
-        R --> S[Report: eval_real.json]
-        S --> T{Quality Gates Pass?}
-        T -->|Yes: Recall >= 0.90, Halluc <= 0.02| V[CI Passes: Allow Merge / Deploy]
-        T -->|No: Regressions Detected| W[CI Fails: Block Risky PR]
+        Q --> R["LLM-as-a-Judge: Claim Extraction & Grounding"]
+        R --> S["Report: eval_real.json"]
+        S --> T{"Quality Gates Pass?"}
+        T -->|"Yes: Meets Gate Thresholds"| V["CI Passes: Allow Merge / Deploy"]
+        T -->|"No: Regressions Detected"| W["CI Fails: Block Risky PR"]
     end
 
-    K --> X[Trace Collector: Latencies & Tokens]
+    K --> X["Trace Collector: Latencies & Tokens"]
     P --> X
-    X --> Y[Observability: Langfuse / Local JSONL]
+    X --> Y["Observability: Langfuse / Local JSONL"]
 ```
 
 ---
