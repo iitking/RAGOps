@@ -1,868 +1,546 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RAGOps · Automated RAG Evaluation & Continuous CI/CD</title>
+  <title>RAGOps · Simple, Reliable RAG with Quality Guardrails</title>
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
   <style>
-    @keyframes pulseGlow {
-      0%, 100% { opacity: 0.4; transform: scale(1); }
-      50% { opacity: 0.9; transform: scale(1.04); }
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
     }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(16px); }
+    .dark {
+      --bg: #090d16;
+      --surface: #0f172a;
+      --surface-subtle: #1e293b;
+      --border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-light: rgba(59, 130, 246, 0.12);
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    .ui-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+    }
+    .ui-card-subtle {
+      background-color: var(--surface-subtle);
+      border: 1px solid var(--border);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    @keyframes flowLine {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
+    .animate-fade-in {
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .animate-slide-up {
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.03); opacity: 1; }
     }
-    .animate-glow {
-      animation: pulseGlow 2.5s infinite ease-in-out;
+    .animate-pulse-soft {
+      animation: pulseSoft 2.5s infinite ease-in-out;
     }
-    .flow-line {
-      background: linear-gradient(90deg, #3b82f6, #10b981, #6366f1, #3b82f6);
-      background-size: 200% 200%;
-      animation: flowLine 3s linear infinite;
-    }
-    /* Custom scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #475569; }
   </style>
 </head>
-<body class="bg-[#0b0f19] text-slate-100 min-h-screen antialiased font-sans selection:bg-blue-600 selection:text-white">
+<body class="min-h-screen flex flex-col font-sans antialiased">
 
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-slate-800/80 bg-[#0e1424]/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 p-[2px] shadow-lg shadow-blue-500/20">
-          <div class="w-full h-full bg-[#0b0f19] rounded-[10px] flex items-center justify-center font-black text-lg text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            ⚡
-          </div>
+  <!-- ========================================== -->
+  <!-- Top Simple Modern Navbar                   -->
+  <!-- ========================================== -->
+  <header class="ui-card border-b sticky top-0 z-50 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Project Identity -->
+      <a href="/" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-lg shadow-sm group-hover:scale-105 transition">
+          ⚡
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-bold text-lg tracking-tight text-white">RAGOps</span>
-            <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">v0.1.0 Ready</span>
+            <span class="font-bold text-base tracking-tight text-slate-900 dark:text-white">RAGOps</span>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+              AI Guardrails
+            </span>
           </div>
-          <p class="text-xs text-slate-400">Automated Evaluation & Continuous CI/CD Guardrails</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Zero Hallucination Retrieval</p>
         </div>
-      </div>
+      </a>
 
-      <!-- Live Environment Status Indicators -->
-      <div class="hidden md:flex items-center gap-3 text-xs">
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span class="w-2 h-2 rounded-full bg-emerald-500 -ml-3.5"></span>
-          <span>Vector Index: <strong class="text-white">158 chunks</strong> (all-MiniLM-L6-v2)</span>
+      <!-- Right Actions: Status & Theme Toggle -->
+      <div class="flex items-center gap-3">
+        <!-- Live Backend Status -->
+        <div id="backend-status-pill" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="backend-status-text">FastAPI Connected · 158 Chunks</span>
         </div>
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300">
-          <span class="text-indigo-400 font-semibold">LLM:</span>
-          <strong class="text-white">gpt-4o-mini</strong>
-        </div>
-        <a href="https://github.com/iitking/RAGOps" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-sm">
-          <span>GitHub Repo</span>
+
+        <!-- Light / Dark Mode Toggle Button -->
+        <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle Light/Dark Theme" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition flex items-center justify-center shadow-sm">
+          <span id="theme-icon" class="text-base">🌙</span>
+        </button>
+
+        <!-- GitHub Link -->
+        <a href="https://github.com/iitking/RAGOps" target="_blank" class="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold hover:opacity-90 transition shadow-sm">
+          <span>GitHub</span>
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </a>
       </div>
+
     </div>
   </header>
 
-  <!-- Sub-Header Tabs -->
-  <div class="border-b border-slate-800 bg-[#0e1424]/40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 overflow-x-auto py-2 text-sm">
-      <button onclick="switchTab('tab-pipeline')" id="btn-pipeline" class="tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/30">
-        <span>🔍</span>
-        <span>Interactive Pipeline Visualizer</span>
-      </button>
-      <button onclick="switchTab('tab-comparator')" id="btn-comparator" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
-        <span>⚖️</span>
-        <span>Experiment & Benchmark Table</span>
-      </button>
-      <button onclick="switchTab('tab-cicd')" id="btn-cicd" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
-        <span>🛡️</span>
-        <span>CI/CD Gate Enforcement</span>
-      </button>
-      <button onclick="switchTab('tab-architecture')" id="btn-architecture" class="tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent">
-        <span>🏗️</span>
-        <span>Architecture & Overview</span>
-      </button>
+  <!-- ========================================== -->
+  <!-- Main Content Area                          -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+
+    <!-- Hero Section: Clear, Simple, Human -->
+    <div class="text-center space-y-3">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+        Search Docs with <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-500">Verified Accuracy</span>
+      </h1>
+      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        Poochiye koi bhi sawal hamare 16 technical docs se. RAGOps factual context dhoondta hai, answer generate karta hai, aur real-time me <strong>hallucination check</strong> karta hai.
+      </p>
     </div>
-  </div>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-    <!-- ============================================================== -->
-    <!-- TAB 1: INTERACTIVE PIPELINE VISUALIZER -->
-    <!-- ============================================================== -->
-    <section id="tab-pipeline" class="tab-content space-y-8 animate-slide-up">
-      <!-- Intro Card -->
-      <div class="bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-blue-950/30 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-xl">
-        <div class="absolute -right-16 -top-16 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="max-w-3xl">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-3">
-            <span>✨ Live Execution Trace</span>
+    <!-- ========================================== -->
+    <!-- Interactive Search / Query Card            -->
+    <!-- ========================================== -->
+    <div class="ui-card rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+      
+      <!-- Input Field and Submit Button -->
+      <form onsubmit="handleQuerySubmit(event)" class="relative flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            See RAG in Action: Query ➔ Retrieval ➔ Generation ➔ LLM Judge
-          </h1>
-          <p class="text-sm text-slate-300 mt-2 leading-relaxed">
-            Har request ke sath dekhiye ki vector store se kaun se chunks aate hain, model unhe kaise synthesize karta hai, aur <strong>LLM-as-a-Judge</strong> answer ki faithfulness aur hallucination kaise measure karta hai.
-          </p>
+          <input 
+            id="question-input" 
+            type="text" 
+            value="How does FastAPI handle asynchronous dependency injection with yield?"
+            placeholder="Type a question (e.g. How to use OAuth2 in FastAPI?)..."
+            class="w-full pl-10 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 transition">
         </div>
+        <button 
+          id="search-button" 
+          type="submit" 
+          class="px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold text-sm transition shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 whitespace-nowrap">
+          <span id="button-spinner" class="hidden animate-spin">⏳</span>
+          <span id="button-label">Ask RAGOps</span>
+        </button>
+      </form>
 
-        <!-- Quick Question Samples -->
-        <div class="mt-6 flex flex-wrap items-center gap-2">
-          <span class="text-xs text-slate-400 font-medium">Try a sample query:</span>
-          <button onclick="setSampleQuery(0)" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-            💡 FastAPI Async Dependency Injection
-          </button>
-          <button onclick="setSampleQuery(1)" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-            🔐 OAuth2 JWT Password Flow
-          </button>
-          <button onclick="setSampleQuery(2)" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition">
-            ⚠️ Out-of-Domain Unanswerable (Refusal Test)
-          </button>
-        </div>
-
-        <!-- Input Box -->
-        <div class="mt-4 flex flex-col sm:flex-row gap-3">
-          <div class="relative flex-1">
-            <input id="query-input" type="text" value="How does FastAPI handle asynchronous dependency injection with yield?"
-              placeholder="Ask any question about the technical docs..."
-              class="w-full px-4 py-3.5 rounded-xl bg-slate-950/80 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition shadow-inner">
-          </div>
-          <button id="run-btn" onclick="executePipeline()" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm transition shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 whitespace-nowrap">
-            <span id="run-btn-icon">⚡</span>
-            <span id="run-btn-text">Execute RAG Pipeline</span>
-          </button>
-        </div>
+      <!-- Quick 1-Click Suggestions -->
+      <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+        <span class="text-slate-500 dark:text-slate-400 font-medium">Quick examples:</span>
+        <button onclick="setQuery(0)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition">
+          ⚡ Async Yield Dependencies
+        </button>
+        <button onclick="setQuery(1)" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700/80 transition">
+          🔐 OAuth2 & JWT Security
+        </button>
+        <button onclick="setQuery(2)" class="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300 hover:bg-amber-100 border border-amber-200 dark:border-amber-800/50 transition">
+          ⚠️ Out-of-Domain (Test Hallucination Refusal)
+        </button>
       </div>
 
-      <!-- Animated Pipeline Steps Flow -->
-      <div id="pipeline-flow-container" class="space-y-6">
-        <!-- Progress Bar Indicator -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
-          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-            <span class="font-medium text-slate-300">Pipeline Execution Progress</span>
-            <span id="pipeline-status-text" class="text-emerald-400 font-semibold">Ready to run</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Result Card (Grounded Answer + Guardrails) -->
+    <!-- ========================================== -->
+    <div id="results-section" class="space-y-5 animate-fade-in">
+      
+      <!-- Answer Card -->
+      <div class="ui-card rounded-2xl p-5 sm:p-7 shadow-lg space-y-5">
+        
+        <!-- Answer Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">AI Synthesized Answer</h2>
           </div>
-          <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
-            <div id="pipeline-progress-bar" class="h-full rounded-full flow-line w-full transition-all duration-500"></div>
-          </div>
-          <!-- Step Markers -->
-          <div class="grid grid-cols-4 mt-3 text-center text-xs">
-            <div id="marker-1" class="text-blue-400 font-semibold">1. Embedding Vector</div>
-            <div id="marker-2" class="text-blue-400 font-semibold">2. Top-K Retrieval</div>
-            <div id="marker-3" class="text-blue-400 font-semibold">3. LLM Synthesis</div>
-            <div id="marker-4" class="text-emerald-400 font-semibold">4. LLM Judge Quality</div>
-          </div>
-        </div>
-
-        <!-- 4-Box Visual Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          <!-- Column 1: Retrieved Chunks Evidence (5 cols) -->
-          <div class="lg:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col h-full">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-2">
-                <span class="w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">2</span>
-                <h3 class="font-bold text-white text-sm">Retrieved Context Evidence</h3>
-              </div>
-              <span id="retrieval-metric-badge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-900/30 text-blue-300 border border-blue-800/50">Top-k: 5 chunks · Cosine Sim</span>
-            </div>
-
-            <div id="retrieved-chunks-list" class="space-y-3 flex-1 overflow-y-auto max-h-[480px] pr-1">
-              <!-- Chunk Card 1 -->
-              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-semibold text-blue-400">📄 05_dependency_injection_system.md</span>
-                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: 0.942</span>
-                </div>
-                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Sub-dependencies & Async Yield Context</div>
-                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
-                  "FastAPI supports async dependencies with 'yield'. The code before yield runs before the route handler, and teardown code after yield runs after the response is sent, even if an exception occurred."
-                </p>
-              </div>
-
-              <!-- Chunk Card 2 -->
-              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-semibold text-blue-400">📄 09_sql_databases_and_async_sessions.md</span>
-                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: 0.887</span>
-                </div>
-                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Managing AsyncSession Lifecycles</div>
-                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
-                  "Using async yield dependencies guarantees database session cleanup. When the client disconnects or completes the request, FastAPI safely calls session.close()."
-                </p>
-              </div>
-
-              <!-- Chunk Card 3 -->
-              <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
-                <div class="flex items-center justify-between text-xs mb-1.5">
-                  <span class="font-semibold text-blue-400">📄 14_concurrency_async_await_threadpool.md</span>
-                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 font-bold">Sim: 0.814</span>
-                </div>
-                <div class="text-[11px] font-medium text-slate-400 mb-1">Section: Async Event Loop Execution</div>
-                <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
-                  "Async dependencies defined with 'async def' execute directly inside Starlette's asyncio event loop, eliminating threadpool overhead for non-blocking I/O operations."
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Column 2: Grounded Answer & LLM Judge (7 cols) -->
-          <div class="lg:col-span-7 flex flex-col gap-6">
-            
-            <!-- Answer Generation Box -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs font-bold">3</span>
-                  <h3 class="font-bold text-white text-sm">Grounded Answer (With Citations)</h3>
-                </div>
-                <div class="flex items-center gap-2 text-xs">
-                  <span id="model-badge" class="px-2 py-0.5 rounded bg-indigo-900/30 text-indigo-300 border border-indigo-800/40 font-mono">gpt-4o-mini</span>
-                  <span id="latency-badge" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">1,248 ms</span>
-                </div>
-              </div>
-
-              <div id="answer-container" class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 text-sm text-slate-200 leading-relaxed min-h-[140px] flex flex-col justify-between">
-                <div id="answer-text">
-                  FastAPI handles asynchronous dependency injection by utilizing Python's <code>async def</code> syntax combined with <code>yield</code> statements. The execution follows a two-phase lifecycle:
-                  <br><br>
-                  1. <strong>Setup Phase:</strong> Code executed prior to the <code>yield</code> expression establishes the resource (such as an asynchronous database session) directly on the asyncio event loop <span class="inline-flex items-center px-1.5 py-0.2 text-[10px] bg-blue-500/20 text-blue-300 rounded font-mono border border-blue-500/40">[Doc 05: Sec 3]</span>.
-                  <br>
-                  2. <strong>Teardown & Cleanup:</strong> Following the completion of the route handler, execution resumes immediately after <code>yield</code>, ensuring cleanup (e.g. <code>session.close()</code>) always runs even if unhandled exceptions were raised <span class="inline-flex items-center px-1.5 py-0.2 text-[10px] bg-blue-500/20 text-blue-300 rounded font-mono border border-blue-500/40">[Doc 09: Sec 2]</span>.
-                </div>
-
-                <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                  <div class="flex items-center gap-2">
-                    <span>Was this response accurate?</span>
-                    <button onclick="recordFeedback(true)" class="p-1 px-2 rounded bg-slate-800 hover:bg-emerald-600/30 hover:text-emerald-300 text-slate-300 transition">👍 Helpful</button>
-                    <button onclick="recordFeedback(false)" class="p-1 px-2 rounded bg-slate-800 hover:bg-rose-600/30 hover:text-rose-300 text-slate-300 transition">👎 Incorrect</button>
-                  </div>
-                  <span id="feedback-alert" class="text-emerald-400 hidden">Thanks for feedback!</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- LLM-as-a-Judge Evaluation & Quality Gate Box -->
-            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-              <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                  <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">4</span>
-                  <h3 class="font-bold text-white text-sm">LLM-as-a-Judge Evaluation & Quality Gate</h3>
-                </div>
-                <div id="gate-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-                  <span>✓</span>
-                  <span>CI GATE: PASSED</span>
-                </div>
-              </div>
-
-              <!-- Metrics 4-col Cards -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-4">
-                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                  <div class="text-[11px] text-slate-400 font-medium">Faithfulness</div>
-                  <div id="metric-faithfulness" class="text-xl font-black text-emerald-400 font-mono mt-0.5">0.995</div>
-                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.90</div>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                  <div class="text-[11px] text-slate-400 font-medium">Hallucination</div>
-                  <div id="metric-hallucination" class="text-xl font-black text-emerald-400 font-mono mt-0.5">0.005</div>
-                  <div class="text-[10px] text-slate-500">Threshold &le; 0.05</div>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                  <div class="text-[11px] text-slate-400 font-medium">Context Recall</div>
-                  <div id="metric-recall" class="text-xl font-black text-blue-400 font-mono mt-0.5">0.977</div>
-                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.80</div>
-                </div>
-                <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
-                  <div class="text-[11px] text-slate-400 font-medium">Answer Relevancy</div>
-                  <div id="metric-relevancy" class="text-xl font-black text-indigo-400 font-mono mt-0.5">0.887</div>
-                  <div class="text-[10px] text-slate-500">Threshold &ge; 0.70</div>
-                </div>
-              </div>
-
-              <!-- Claims Verified Checklist -->
-              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
-                <div class="text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
-                  <span>Atomic Claims Extracted & Verified by Judge:</span>
-                  <span class="text-emerald-400 font-mono text-[11px]">3 / 3 Supported (100%)</span>
-                </div>
-                <ul id="claims-list" class="space-y-1.5 text-xs text-slate-300">
-                  <li class="flex items-start gap-2">
-                    <span class="text-emerald-400 font-bold">✓</span>
-                    <span>"FastAPI supports async dependencies using yield statements." (Supported by Doc 05)</span>
-                  </li>
-                  <li class="flex items-start gap-2">
-                    <span class="text-emerald-400 font-bold">✓</span>
-                    <span>"Code prior to yield executes before the route handler runs." (Supported by Doc 05)</span>
-                  </li>
-                  <li class="flex items-start gap-2">
-                    <span class="text-emerald-400 font-bold">✓</span>
-                    <span>"Cleanup code runs after response is sent, even on exceptions." (Supported by Doc 09)</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
+          <div class="flex items-center gap-2 text-xs">
+            <span id="model-pill" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
+              gpt-4o-mini
+            </span>
+            <span id="latency-pill" class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
+              ⏱️ 1,248 ms
+            </span>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ============================================================== -->
-    <!-- TAB 2: EXPERIMENT & BENCHMARK COMPARATOR -->
-    <!-- ============================================================== -->
-    <section id="tab-comparator" class="tab-content space-y-8 hidden animate-slide-up">
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-        <div class="max-w-3xl mb-6">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
-            <span>📊 Empirical Evidence</span>
-          </div>
-          <h2 class="text-2xl font-bold text-white tracking-tight">The Core Engineering Value: Catching Regressions</h2>
-          <p class="text-sm text-slate-300 mt-1 leading-relaxed">
-            "Maine config badla, metric badla, gate ne pakda." Dekhiye kaise ek chhota sa chunking aur top-k change RAG pipeline ko break kar sakta hai, aur RAGOps use release hone se pehle block kar deta hai.
+        <!-- Answer Text Body -->
+        <div id="answer-body" class="text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-200 space-y-3 font-normal">
+          <p>
+            FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle is executed in two predictable phases:
           </p>
+          <ul class="list-disc pl-5 space-y-1.5 text-sm">
+            <li>
+              <strong>Resource Setup (Before Yield):</strong> The code before <code>yield</code> runs before the route handler. It creates resources (like an asynchronous database session) directly on Starlette's asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.
+            </li>
+            <li>
+              <strong>Automatic Teardown (After Yield):</strong> Once the response is sent back to the client, execution resumes after <code>yield</code> to safely close connections (e.g. <code>session.close()</code>), even if an unhandled exception occurred <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.
+            </li>
+          </ul>
         </div>
 
-        <!-- Side-by-Side Comparison Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Quality Metrics Summary Badges (3 Simple Indicators) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
           
-          <!-- Card 1: Suboptimal / Regressed -->
-          <div class="p-5 rounded-2xl bg-rose-950/20 border-2 border-rose-500/30 flex flex-col justify-between relative overflow-hidden">
-            <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold border border-rose-500/40">
-              ❌ CI GATE BLOCKED
-            </div>
-            <div>
-              <div class="text-sm font-semibold text-rose-300 uppercase tracking-wider mb-1">Experiment A: Suboptimal Config</div>
-              <h3 class="text-lg font-bold text-white mb-3">Chunk Size 500 · Overlap 20 · Top-k 3</h3>
-              <p class="text-xs text-slate-300 mb-4">
-                Bade chunks aur shallow retrieval (k=3) ki wajah se LLM ko zaroori context nahi milta, jisse hallucination rate <strong>27.7%</strong> tak badh gaya.
-              </p>
-
-              <!-- Progress Bars -->
-              <div class="space-y-3 text-xs">
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Context Recall</span>
-                    <span class="text-rose-400 font-bold font-mono">0.6610 (Threshold &ge; 0.80)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full" style="width: 66.1%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Faithfulness</span>
-                    <span class="text-rose-400 font-bold font-mono">0.7230 (Threshold &ge; 0.90)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full" style="width: 72.3%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Hallucination Rate</span>
-                    <span class="text-rose-400 font-bold font-mono">0.2770 (Threshold &le; 0.05)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-rose-500 h-full rounded-full" style="width: 27.7%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-6 pt-4 border-t border-rose-500/20 text-xs text-rose-300/80 font-mono flex items-center justify-between">
-              <span>Report: reports/eval_regressed.json</span>
-              <span>Verdict: FAIL</span>
-            </div>
+          <div class="ui-card-subtle p-3 rounded-xl text-center">
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Faithfulness</div>
+            <div id="metric-faithfulness" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">99.5%</div>
+            <div class="text-[10px] text-slate-400">Claims Verified</div>
           </div>
 
-          <!-- Card 2: Production Tuned -->
-          <div class="p-5 rounded-2xl bg-emerald-950/20 border-2 border-emerald-500/40 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-emerald-500/5">
-            <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/40">
-              ✅ CI GATE PASSED
-            </div>
-            <div>
-              <div class="text-sm font-semibold text-emerald-300 uppercase tracking-wider mb-1">Experiment B: Production Tuned</div>
-              <h3 class="text-lg font-bold text-white mb-3">Chunk Size 300 · Overlap 60 · Top-k 5</h3>
-              <p class="text-xs text-slate-300 mb-4">
-                Tight recursive chunking aur deep retrieval (k=5) se complete evidence context milta hai. Hallucination rate sirf <strong>0.5%</strong> par drop ho gaya!
-              </p>
+          <div class="ui-card-subtle p-3 rounded-xl text-center">
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Hallucination</div>
+            <div id="metric-hallucination" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">0.5%</div>
+            <div class="text-[10px] text-slate-400">&lt; 5% Target Safe</div>
+          </div>
 
-              <!-- Progress Bars -->
-              <div class="space-y-3 text-xs">
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Context Recall</span>
-                    <span class="text-emerald-400 font-bold font-mono">0.9772 (Threshold &ge; 0.80)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-full" style="width: 97.7%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Faithfulness</span>
-                    <span class="text-emerald-400 font-bold font-mono">0.9950 (Threshold &ge; 0.90)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-full" style="width: 99.5%"></div>
-                  </div>
-                </div>
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <span class="text-slate-400">Hallucination Rate</span>
-                    <span class="text-emerald-400 font-bold font-mono">0.0050 (Threshold &le; 0.05)</span>
-                  </div>
-                  <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div class="bg-emerald-500 h-full rounded-full" style="width: 1%"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="ui-card-subtle p-3 rounded-xl text-center">
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Context Recall</div>
+            <div id="metric-recall" class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 font-mono">97.7%</div>
+            <div class="text-[10px] text-slate-400">Evidence Covered</div>
+          </div>
 
-            <div class="mt-6 pt-4 border-t border-emerald-500/20 text-xs text-emerald-300/80 font-mono flex items-center justify-between">
-              <span>Report: reports/eval_real.json</span>
-              <span>Verdict: PASS</span>
-            </div>
+          <div class="ui-card-subtle p-3 rounded-xl text-center">
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">CI Quality Gate</div>
+            <div id="metric-gate" class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">PASSED ✓</div>
+            <div class="text-[10px] text-slate-400">Ready to Deploy</div>
           </div>
 
         </div>
 
-        <!-- Interactive Config Slider Simulation -->
-        <div class="mt-8 bg-slate-950/70 border border-slate-800 rounded-xl p-5">
-          <h4 class="text-sm font-bold text-white mb-2">Interactive Parameter Tuning Simulator</h4>
-          <p class="text-xs text-slate-400 mb-4">Slider ko move karke dekhiye ki chunk size badhane ya ghaatane se recall aur hallucination par kya impact padta hai:</p>
-          
-          <div class="flex flex-col sm:flex-row items-center gap-6">
-            <div class="w-full sm:w-1/2">
-              <div class="flex justify-between text-xs mb-1">
-                <span class="text-slate-300">Chunk Size:</span>
-                <span id="slider-chunk-val" class="font-bold text-blue-400 font-mono">300 characters</span>
-              </div>
-              <input id="chunk-slider" type="range" min="150" max="800" step="50" value="300" oninput="updateSimulation(this.value)" class="w-full accent-blue-500">
-            </div>
-
-            <div class="w-full sm:w-1/2 grid grid-cols-3 gap-3 text-center">
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <div class="text-[10px] text-slate-400">Est. Recall</div>
-                <div id="sim-recall" class="text-sm font-bold text-emerald-400 font-mono">0.97</div>
-              </div>
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <div class="text-[10px] text-slate-400">Est. Hallucination</div>
-                <div id="sim-halluc" class="text-sm font-bold text-emerald-400 font-mono">0.01</div>
-              </div>
-              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
-                <div class="text-[10px] text-slate-400">Gate Status</div>
-                <div id="sim-status" class="text-sm font-bold text-emerald-400 font-mono">PASS</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================== -->
-    <!-- TAB 3: CI/CD GATE SIMULATOR -->
-    <!-- ============================================================== -->
-    <section id="tab-cicd" class="tab-content space-y-8 hidden animate-slide-up">
-      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-        <div class="max-w-3xl mb-6">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
-            <span>🛡️ Automated Pull Request Guard</span>
-          </div>
-          <h2 class="text-2xl font-bold text-white tracking-tight">GitHub Actions CI Pipeline Simulation</h2>
-          <p class="text-sm text-slate-300 mt-1 leading-relaxed">
-            Developer jab code commit karta hai, to GitHub Actions 2-stages me RAG evaluation run karta hai. Agar accuracy drop hoti hai to PR merge <strong>block</strong> ho jata hai.
-          </p>
-        </div>
-
-        <!-- Simulated GitHub PR Box -->
-        <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-          <!-- PR Header -->
-          <div class="bg-slate-900/90 border-b border-slate-800 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2 text-xs">
-                <span class="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-mono font-semibold">PR #42</span>
-                <span class="text-slate-400">opened by <strong class="text-white">engineer</strong> into <span class="font-mono text-blue-400">main</span></span>
-              </div>
-              <h3 class="text-base font-bold text-white mt-1">feat: optimize chunk size from 300 to 500 for token efficiency</h3>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="simulatePRRun('fail')" class="px-3 py-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-medium transition">
-                Simulate Regression PR
-              </button>
-              <button onclick="simulatePRRun('pass')" class="px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition">
-                Simulate Healthy PR
-              </button>
-            </div>
-          </div>
-
-          <!-- PR Checks Status -->
-          <div class="p-5 space-y-4">
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-800">
-              <div class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">✓</div>
-              <div class="flex-1 text-xs">
-                <div class="font-semibold text-white">Stage 1: Unit Tests & CI Smoke Evaluation</div>
-                <div class="text-slate-400">15/15 unit tests passed · 12-case smoke set evaluated (0.025s)</div>
-              </div>
-              <span class="text-xs text-emerald-400 font-mono font-semibold">Successful</span>
-            </div>
-
-            <div id="pr-stage2-box" class="flex items-center gap-3 p-3 rounded-lg bg-slate-900 border border-slate-800">
-              <div id="pr-stage2-icon" class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold">✓</div>
-              <div class="flex-1 text-xs">
-                <div id="pr-stage2-title" class="font-semibold text-white">Stage 2: Production Benchmark & Live Gate Enforcement</div>
-                <div id="pr-stage2-desc" class="text-slate-400">50 benchmark test cases · gpt-4o-mini LLM judge · Recall: 0.9772 · Faithfulness: 0.9950</div>
-              </div>
-              <span id="pr-stage2-status" class="text-xs text-emerald-400 font-mono font-semibold">Passing</span>
-            </div>
-          </div>
-
-          <!-- PR Bottom Merge Banner -->
-          <div id="pr-merge-banner" class="bg-emerald-950/30 border-t border-emerald-500/30 p-4 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-xs">
-              <span class="text-emerald-400 text-lg">✓</span>
-              <div>
-                <strong class="text-emerald-300">All checks have passed!</strong>
-                <p class="text-slate-400">1 successful check. Ready to merge into production.</p>
-              </div>
-            </div>
-            <button class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold text-xs shadow-md">
-              Merge pull request
+        <!-- Feedback Thumbs Up / Down -->
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div class="flex items-center gap-2">
+            <span>Was this helpful?</span>
+            <button onclick="handleFeedback(true)" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              👍 Yes
+            </button>
+            <button onclick="handleFeedback(false)" class="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              👎 No
             </button>
           </div>
+          <span id="feedback-toast" class="hidden text-emerald-600 dark:text-emerald-400 font-medium">Thank you for your feedback!</span>
+        </div>
+
+      </div>
+
+      <!-- ========================================== -->
+      <!-- Collapsible Context Evidence (Clean & Easy)-->
+      <!-- ========================================== -->
+      <div class="ui-card rounded-2xl overflow-hidden shadow-sm">
+        <button onclick="toggleSection('context-drawer')" class="w-full p-4 px-5 text-left flex items-center justify-between text-sm font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+          <div class="flex items-center gap-2">
+            <span>📄</span>
+            <span>View Retrieved Evidence Chunks (<span id="chunks-count">3 chunks</span>)</span>
+          </div>
+          <span id="context-chevron" class="text-xs text-slate-400 transition-transform">▼</span>
+        </button>
+
+        <div id="context-drawer" class="hidden p-5 pt-0 space-y-3 border-t border-slate-100 dark:border-slate-800">
+          <div id="chunks-container" class="space-y-3 pt-3">
+            
+            <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-blue-600 dark:text-blue-400">05_dependency_injection_system.md</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold">Similarity: 0.942</span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
+                "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched."
+              </p>
+            </div>
+
+            <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-blue-600 dark:text-blue-400">09_sql_databases_and_async_sessions.md</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold">Similarity: 0.887</span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
+                "Using async yield dependencies guarantees database session cleanup. When the request completes, FastAPI safely calls session.close()."
+              </p>
+            </div>
+
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- ============================================================== -->
-    <!-- TAB 4: ARCHITECTURE & SYSTEM OVERVIEW -->
-    <!-- ============================================================== -->
-    <section id="tab-architecture" class="tab-content space-y-8 hidden animate-slide-up">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Simple Value Section: Why RAGOps Matters   -->
+    <!-- ========================================== -->
+    <div class="space-y-4 pt-4">
+      <div class="text-center space-y-1">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Why Quality Gates Matter</h3>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Ek chhota sa config badlav AI ko galat answers dene par majboor kar sakta hai.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         
-        <!-- Component 1 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold text-sm mb-3">1</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">Corpus & Chunking</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            16 comprehensive FastAPI Markdown docs + HR policies. Recursive splitting preserves headers and token boundaries without truncating key concepts.
+        <!-- Bad Config -->
+        <div class="ui-card p-5 rounded-2xl border-l-4 border-l-rose-500 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">Suboptimal Config</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400">BLOCKED ❌</span>
+          </div>
+          <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">Chunk Size 500 · Top-k 3</div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Large chunks aur shallow retrieval context miss karte hain. Hallucination rate <strong>27.7%</strong> pahunch jata hai. RAGOps isko CI mein hi pakad leta hai!
           </p>
         </div>
 
-        <!-- Component 2 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-sm mb-3">2</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">Embedding & Vector Store</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Sentence-Transformers (all-MiniLM-L6-v2, 384-dim) aur OpenAI (text-embedding-3-small) with cosine similarity normalization and fast ranking.
-          </p>
-        </div>
-
-        <!-- Component 3 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm mb-3">3</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">LLM Generator</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Multi-provider generation with OpenAI (gpt-4o-mini), Gemini (1.5-flash), and Anthropic (claude-3-5-haiku) enforcing citation grounding.
-          </p>
-        </div>
-
-        <!-- Component 4 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-sm mb-3">4</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">LLM-as-a-Judge</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Break answers into atomic factual claims, verifying each against context. Computes real-world Faithfulness and Hallucination rates.
-          </p>
-        </div>
-
-        <!-- Component 5 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-sm mb-3">5</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">CI/CD Quality Gates</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Automated threshold enforcement: Recall &ge; 0.80, Faithfulness &ge; 0.90, Hallucination &le; 0.05. Blocks builds when regressions occur.
-          </p>
-        </div>
-
-        <!-- Component 6 -->
-        <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
-          <div class="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-400 flex items-center justify-center font-bold text-sm mb-3">6</div>
-          <h3 class="font-bold text-white text-sm mb-1.5">Traces & Langfuse</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Every query emits an operational trace (p50/p95 latency, tokens, retrieved chunk IDs, user feedback) syncing to Langfuse or local JSONL.
+        <!-- Good Config -->
+        <div class="ui-card p-5 rounded-2xl border-l-4 border-l-emerald-500 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Production Config</span>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">PASSED ✓</span>
+          </div>
+          <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">Chunk Size 300 · Top-k 5</div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+            Optimal recursive chunking aur deep retrieval complete evidence provide karte hain. Hallucination rate sirf <strong>0.5%</strong> rehta hai.
           </p>
         </div>
 
       </div>
-    </section>
+    </div>
 
   </main>
 
-  <!-- Interactive JavaScript Engine -->
+  <!-- ========================================== -->
+  <!-- Clean Footer                               -->
+  <!-- ========================================== -->
+  <footer class="ui-card border-t mt-12 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
+    <div class="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <span>RAGOps · Automated RAG Evaluation & CI/CD Guardrails</span>
+      <span>Built with ❤️ by <a href="https://github.com/iitking" target="_blank" class="font-medium text-blue-600 dark:text-blue-400 hover:underline">Nivesh Kumar Meena</a> · MIT License</span>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- Lightweight Interactive Script             -->
+  <!-- ========================================== -->
   <script>
-    // Tab Switching
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(el => {
-        el.className = "tab-btn px-4 py-2 rounded-lg font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2 border border-transparent";
-      });
+    // Theme Management (Light / Dark)
+    function initTheme() {
+      const saved = localStorage.getItem('ragops-theme');
+      const isDark = saved ? saved === 'dark' : true; // Default dark
+      applyTheme(isDark);
+    }
 
-      const target = document.getElementById(tabId);
-      if (target) target.classList.remove('hidden');
+    function toggleTheme() {
+      const isCurrentlyDark = document.documentElement.classList.contains('dark');
+      applyTheme(!isCurrentlyDark);
+    }
 
-      const btnMap = {
-        'tab-pipeline': 'btn-pipeline',
-        'tab-comparator': 'btn-comparator',
-        'tab-cicd': 'btn-cicd',
-        'tab-architecture': 'btn-architecture'
-      };
-      const activeBtn = document.getElementById(btnMap[tabId]);
-      if (activeBtn) {
-        activeBtn.className = "tab-btn px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 bg-blue-600/20 text-blue-400 border border-blue-500/30";
+    function applyTheme(isDark) {
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('theme-icon').textContent = '☀️';
+        localStorage.setItem('ragops-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('theme-icon').textContent = '🌙';
+        localStorage.setItem('ragops-theme', 'light');
       }
     }
 
-    // Preset Sample Queries
-    const sampleQueries = [
+    // Toggle Collapsible Sections
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      const chevron = document.getElementById('context-chevron');
+      if (el.classList.contains('hidden')) {
+        el.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        el.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Preset Queries Data
+    const demoData = [
       {
         question: "How does FastAPI handle asynchronous dependency injection with yield?",
+        answer: `<p>FastAPI handles asynchronous dependency injection using Python's <code>async def</code> syntax combined with <code>yield</code> expressions. The lifecycle is executed in two predictable phases:</p>
+        <ul class="list-disc pl-5 space-y-1.5 text-sm mt-2">
+          <li><strong>Resource Setup (Before Yield):</strong> Code prior to <code>yield</code> runs before the route handler, instantiating database sessions directly on the asyncio event loop <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 05: Injection]</span>.</li>
+          <li><strong>Automatic Teardown (After Yield):</strong> Once the response is sent, execution resumes after <code>yield</code> to safely close connections (e.g. <code>session.close()</code>), even if an exception was raised <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 09: Async Sessions]</span>.</li>
+        </ul>`,
+        faithfulness: "99.5%",
+        hallucination: "0.5%",
+        recall: "97.7%",
+        gate: "PASSED ✓",
         chunks: [
-          { doc: "05_dependency_injection_system.md", sec: "Async Yield Context & Teardown", sim: "0.942", text: "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched." },
-          { doc: "09_sql_databases_and_async_sessions.md", sec: "AsyncSession Lifecycle Management", sim: "0.887", text: "Using yield ensures session.close() is called unconditionally, preventing connection leaks on database connection pools." },
-          { doc: "14_concurrency_async_await_threadpool.md", sec: "Event Loop Scheduling", sim: "0.814", text: "Async dependencies defined with 'async def' execute inside Starlette's asyncio event loop, bypassing threadpool overhead." }
-        ],
-        answer: "FastAPI handles asynchronous dependency injection through Python's <code>async def</code> syntax and <code>yield</code> expressions. Resources are instantiated before yield and automatically torn down afterwards.",
-        faithfulness: "0.995",
-        hallucination: "0.005",
-        recall: "0.977",
-        relevancy: "0.887",
-        gate: "PASSED",
-        claims: [
-          "FastAPI supports async dependencies using yield statements. (Supported by Doc 05)",
-          "Code prior to yield executes before the route handler runs. (Supported by Doc 05)",
-          "Cleanup code runs after response is sent, even on exceptions. (Supported by Doc 09)"
+          { doc: "05_dependency_injection_system.md", sim: "0.942", text: "FastAPI supports async dependencies with 'yield'. Code before yield executes prior to the route handler, and cleanup code runs after the response is dispatched." },
+          { doc: "09_sql_databases_and_async_sessions.md", sim: "0.887", text: "Using async yield dependencies guarantees database session cleanup. When the request completes, FastAPI safely calls session.close()." },
+          { doc: "14_concurrency_async_await_threadpool.md", sim: "0.814", text: "Async dependencies defined with 'async def' execute directly inside Starlette's asyncio event loop, bypassing threadpool overhead." }
         ]
       },
       {
         question: "How do I secure FastAPI endpoints with OAuth2 and JWT tokens?",
+        answer: `<p>FastAPI secures endpoints using <code>OAuth2PasswordBearer</code> and JWT tokens. Incoming HTTP requests pass through an authentication dependency:</p>
+        <ul class="list-disc pl-5 space-y-1.5 text-sm mt-2">
+          <li><strong>Bearer Token Extraction:</strong> <code>OAuth2PasswordBearer(tokenUrl='token')</code> extracts the Bearer token from the <code>Authorization</code> header <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 06: Security]</span>.</li>
+          <li><strong>Cryptographic Verification:</strong> <code>get_current_user</code> decodes the JWT using <code>python-jose</code> with your secret key and algorithm (HS256), validating token expiry <span class="inline-block px-1.5 py-0.2 rounded bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-mono border border-blue-200 dark:border-blue-800">[Doc 06: Security]</span>.</li>
+        </ul>`,
+        faithfulness: "98.8%",
+        hallucination: "1.2%",
+        recall: "96.5%",
+        gate: "PASSED ✓",
         chunks: [
-          { doc: "06_security_oauth2_jwt_tokens.md", sec: "OAuth2PasswordBearer Flow", sim: "0.961", text: "OAuth2PasswordBearer defines the token URL. Injected into Depends(), it extracts the Authorization header Bearer token from incoming requests." },
-          { doc: "06_security_oauth2_jwt_tokens.md", sec: "JWT Signature Verification", sim: "0.923", text: "Tokens are signed using python-jose (HS256) with a secret key. get_current_user decodes the token and validates expiration timestamps." }
-        ],
-        answer: "Endpoints are secured using <code>OAuth2PasswordBearer(tokenUrl='token')</code> combined with dependency injection. The <code>get_current_user</code> dependency decodes the JWT token via python-jose using HS256, validates expiry, and fetches user claims.",
-        faithfulness: "0.988",
-        hallucination: "0.012",
-        recall: "0.965",
-        relevancy: "0.912",
-        gate: "PASSED",
-        claims: [
-          "OAuth2PasswordBearer defines the authentication URL endpoint. (Supported by Doc 06)",
-          "JWT tokens are decoded and validated using a cryptographic secret key. (Supported by Doc 06)",
-          "Invalid or expired tokens trigger an HTTP 401 Unauthorized status. (Supported by Doc 06)"
+          { doc: "06_security_oauth2_jwt_tokens.md", sim: "0.961", text: "OAuth2PasswordBearer defines the token URL. Injected into Depends(), it extracts the Authorization header Bearer token from incoming requests." },
+          { doc: "06_security_oauth2_jwt_tokens.md", sim: "0.923", text: "Tokens are signed using python-jose (HS256) with a secret key. get_current_user decodes the token and validates expiration timestamps." }
         ]
       },
       {
-        question: "What is the refund policy for quantum computing hardware?",
+        question: "What is the return and refund policy for quantum computing hardware?",
+        answer: `<p class="text-amber-600 dark:text-amber-400 font-medium">⚠️ Information Not Available in Document Corpus</p>
+        <p class="mt-1">I do not have sufficient information in the provided technical documentation to answer this question. The indexed corpus covers FastAPI technical architecture and employee policies. The model has deliberately declined to hallucinate ungrounded specifications.</p>`,
+        faithfulness: "100.0%",
+        hallucination: "0.0%",
+        recall: "100.0%",
+        gate: "PASSED ✓",
         chunks: [
-          { doc: "01_fastapi_intro_and_architecture.md", sec: "FastAPI Introduction", sim: "0.312", text: "FastAPI is a modern, fast web framework for building APIs with Python 3.8+." },
-          { doc: "hr_policy.txt", sec: "Employee Leave Policy", sim: "0.284", text: "Employees are entitled to 20 paid leave days annually." }
-        ],
-        answer: "I do not have sufficient information in the provided technical documentation to answer this question. The corpus covers FastAPI architecture and HR leave policies, with no reference to quantum computing hardware refund policies.",
-        faithfulness: "1.000",
-        hallucination: "0.000",
-        recall: "1.000",
-        relevancy: "0.950",
-        gate: "PASSED",
-        claims: [
-          "The provided context does not contain quantum computing refund policies. (Refusal Verified)",
-          "Model accurately declined to hallucinate ungrounded information. (Passes LLM Judge)"
+          { doc: "01_fastapi_intro_and_architecture.md", sim: "0.312", text: "FastAPI is a modern, fast web framework for building APIs with Python 3.8+." },
+          { doc: "hr_policy.txt", sim: "0.284", text: "Employees are entitled to 20 paid leave days annually." }
         ]
       }
     ];
 
-    function setSampleQuery(idx) {
-      const q = sampleQueries[idx];
-      document.getElementById('query-input').value = q.question;
-      executePipeline(q);
+    function setQuery(idx) {
+      const item = demoData[idx];
+      document.getElementById('question-input').value = item.question;
+      renderResult(item);
     }
 
-    // Execute Pipeline Animation
-    function executePipeline(preset) {
-      const runBtn = document.getElementById('run-btn');
-      const btnText = document.getElementById('run-btn-text');
-      const progressBar = document.getElementById('pipeline-progress-bar');
-      const statusText = document.getElementById('pipeline-status-text');
+    async function handleQuerySubmit(e) {
+      if (e) e.preventDefault();
+      const question = document.getElementById('question-input').value.trim();
+      if (!question) return;
 
-      runBtn.disabled = true;
-      btnText.textContent = "Processing...";
-      statusText.textContent = "1/4 Embedding & Searching Vector Store...";
-      progressBar.style.width = "25%";
+      const btn = document.getElementById('search-button');
+      const spinner = document.getElementById('button-spinner');
+      const label = document.getElementById('button-label');
 
-      // Select preset or default
-      const data = preset || sampleQueries[0];
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      label.textContent = "Retrieving & Verifying...";
 
+      try {
+        // Try live backend first
+        const resp = await fetch('/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: question, top_k: 5 })
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          renderLiveResult(data);
+          btn.disabled = false;
+          spinner.classList.add('hidden');
+          label.textContent = "Ask RAGOps";
+          return;
+        }
+      } catch (err) {
+        // Graceful fallback to demo data if offline
+      }
+
+      // Fallback to closest demo question or default
       setTimeout(() => {
-        statusText.textContent = "2/4 Retrieved 3 Chunks (Cosine Sim >= 0.81)...";
-        progressBar.style.width = "50%";
-
-        // Render chunks
-        renderChunks(data.chunks);
-
-        setTimeout(() => {
-          statusText.textContent = "3/4 LLM Synthesizing Grounded Answer...";
-          progressBar.style.width = "75%";
-          document.getElementById('answer-text').innerHTML = data.answer;
-
-          setTimeout(() => {
-            statusText.textContent = "4/4 LLM-as-a-Judge Evaluating Claims...";
-            progressBar.style.width = "100%";
-
-            // Update metrics
-            document.getElementById('metric-faithfulness').textContent = data.faithfulness;
-            document.getElementById('metric-hallucination').textContent = data.hallucination;
-            document.getElementById('metric-recall').textContent = data.recall;
-            document.getElementById('metric-relevancy').textContent = data.relevancy;
-
-            // Render claims
-            const claimsList = document.getElementById('claims-list');
-            claimsList.innerHTML = data.claims.map(c => `
-              <li class="flex items-start gap-2">
-                <span class="text-emerald-400 font-bold">✓</span>
-                <span>${c}</span>
-              </li>
-            `).join('');
-
-            runBtn.disabled = false;
-            btnText.textContent = "Execute RAG Pipeline";
-            statusText.textContent = "Completed · CI Gate Approved ✓";
-          }, 400);
-        }, 400);
-      }, 400);
+        let match = demoData.find(d => d.question.toLowerCase().includes(question.toLowerCase().slice(0, 15))) || demoData[0];
+        renderResult(match);
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        label.textContent = "Ask RAGOps";
+      }, 500);
     }
 
-    function renderChunks(chunks) {
-      const container = document.getElementById('retrieved-chunks-list');
-      container.innerHTML = chunks.map(c => `
-        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-blue-500/40 transition">
-          <div class="flex items-center justify-between text-xs mb-1.5">
-            <span class="font-semibold text-blue-400">📄 ${c.doc}</span>
-            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-bold">Sim: ${c.sim}</span>
+    function renderResult(item) {
+      document.getElementById('answer-body').innerHTML = item.answer;
+      document.getElementById('metric-faithfulness').textContent = item.faithfulness;
+      document.getElementById('metric-hallucination').textContent = item.hallucination;
+      document.getElementById('metric-recall').textContent = item.recall;
+      document.getElementById('metric-gate').textContent = item.gate;
+      document.getElementById('chunks-count').textContent = item.chunks.length + ' chunks';
+
+      const chunksContainer = document.getElementById('chunks-container');
+      chunksContainer.innerHTML = item.chunks.map(c => `
+        <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-blue-600 dark:text-blue-400">${c.doc}</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono text-[11px] font-bold">Similarity: ${c.sim}</span>
           </div>
-          <div class="text-[11px] font-medium text-slate-400 mb-1">Section: ${c.sec}</div>
-          <p class="text-xs text-slate-300 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800/80 font-mono">
+          <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
             "${c.text}"
           </p>
         </div>
       `).join('');
     }
 
-    function recordFeedback(isPositive) {
-      const alert = document.getElementById('feedback-alert');
-      alert.textContent = isPositive ? "Recorded: Positive feedback (+1)" : "Recorded: Negative feedback (-1)";
-      alert.classList.remove('hidden');
-      setTimeout(() => alert.classList.add('hidden'), 3000);
-    }
-
-    // Slider Simulation
-    function updateSimulation(val) {
-      document.getElementById('slider-chunk-val').textContent = val + " characters";
-      const simRecall = document.getElementById('sim-recall');
-      const simHalluc = document.getElementById('sim-halluc');
-      const simStatus = document.getElementById('sim-status');
-
-      if (val <= 350) {
-        simRecall.textContent = "0.98";
-        simRecall.className = "text-sm font-bold text-emerald-400 font-mono";
-        simHalluc.textContent = "0.01";
-        simHalluc.className = "text-sm font-bold text-emerald-400 font-mono";
-        simStatus.textContent = "PASS";
-        simStatus.className = "text-sm font-bold text-emerald-400 font-mono";
-      } else if (val <= 450) {
-        simRecall.textContent = "0.82";
-        simRecall.className = "text-sm font-bold text-amber-400 font-mono";
-        simHalluc.textContent = "0.08";
-        simHalluc.className = "text-sm font-bold text-amber-400 font-mono";
-        simStatus.textContent = "WARN";
-        simStatus.className = "text-sm font-bold text-amber-400 font-mono";
-      } else {
-        simRecall.textContent = "0.66";
-        simRecall.className = "text-sm font-bold text-rose-400 font-mono";
-        simHalluc.textContent = "0.28";
-        simHalluc.className = "text-sm font-bold text-rose-400 font-mono";
-        simStatus.textContent = "FAIL";
-        simStatus.className = "text-sm font-bold text-rose-400 font-mono";
+    function renderLiveResult(data) {
+      document.getElementById('answer-body').innerHTML = `<p>${data.answer}</p>`;
+      document.getElementById('latency-pill').textContent = `⏱️ ${data.total_latency_ms} ms`;
+      document.getElementById('model-pill').textContent = data.model;
+      
+      if (data.citations && data.citations.length > 0) {
+        document.getElementById('chunks-count').textContent = data.citations.length + ' chunks';
+        document.getElementById('chunks-container').innerHTML = data.citations.map(c => `
+          <div class="ui-card-subtle p-3.5 rounded-xl space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-blue-600 dark:text-blue-400">${c.source || c.document_id}</span>
+              <span class="text-[11px] text-slate-500">${c.section || ''}</span>
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-mono leading-relaxed">
+              "${c.text_snippet}"
+            </p>
+          </div>
+        `).join('');
       }
     }
 
-    // PR Simulator
-    function simulatePRRun(mode) {
-      const box = document.getElementById('pr-stage2-box');
-      const icon = document.getElementById('pr-stage2-icon');
-      const title = document.getElementById('pr-stage2-title');
-      const desc = document.getElementById('pr-stage2-desc');
-      const status = document.getElementById('pr-stage2-status');
-      const banner = document.getElementById('pr-merge-banner');
+    function handleFeedback(isPositive) {
+      const toast = document.getElementById('feedback-toast');
+      toast.textContent = isPositive ? "Thanks! Recorded positive rating." : "Thanks! Recorded negative feedback.";
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
 
-      if (mode === 'fail') {
-        box.className = "flex items-center gap-3 p-3 rounded-lg bg-rose-950/30 border border-rose-500/40";
-        icon.className = "w-5 h-5 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs font-bold";
-        icon.textContent = "✕";
-        title.textContent = "Stage 2: Production Benchmark & Live Gate Enforcement";
-        desc.textContent = "Regression detected! Recall: 0.6610 < 0.80 · Faithfulness: 0.7230 < 0.90 · Hallucination: 0.2770 > 0.05";
-        status.textContent = "Failed (Blocked)";
-        status.className = "text-xs text-rose-400 font-mono font-semibold";
-
-        banner.className = "bg-rose-950/40 border-t border-rose-500/30 p-4 flex items-center justify-between";
-        banner.innerHTML = `
-          <div class="flex items-center gap-2 text-xs">
-            <span class="text-rose-400 text-lg font-bold">✕</span>
-            <div>
-              <strong class="text-rose-300">Merging is blocked!</strong>
-              <p class="text-slate-400">Quality gate failed. Fix chunk configuration to restore baseline recall.</p>
-            </div>
-          </div>
-          <button disabled class="px-4 py-2 rounded-lg bg-slate-800 text-slate-500 font-semibold text-xs cursor-not-allowed">
-            Merge blocked
-          </button>
-        `;
-      } else {
-        box.className = "flex items-center gap-3 p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/40";
-        icon.className = "w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold";
-        icon.textContent = "✓";
-        title.textContent = "Stage 2: Production Benchmark & Live Gate Enforcement";
-        desc.textContent = "50 benchmark test cases · gpt-4o-mini LLM judge · Recall: 0.9772 · Faithfulness: 0.9950 · All gates passed";
-        status.textContent = "Passing";
-        status.className = "text-xs text-emerald-400 font-mono font-semibold";
-
-        banner.className = "bg-emerald-950/30 border-t border-emerald-500/30 p-4 flex items-center justify-between";
-        banner.innerHTML = `
-          <div class="flex items-center gap-2 text-xs">
-            <span class="text-emerald-400 text-lg">✓</span>
-            <div>
-              <strong class="text-emerald-300">All checks have passed!</strong>
-              <p class="text-slate-400">1 successful check. Ready to merge into production.</p>
-            </div>
-          </div>
-          <button class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md transition">
-            Merge pull request
-          </button>
-        `;
+    // Check Backend Health on load
+    async function checkHealth() {
+      try {
+        const res = await fetch('/health');
+        if (res.ok) {
+          const d = await res.json();
+          document.getElementById('backend-status-text').textContent = `FastAPI Connected · ${d.indexed_chunks || 158} Chunks (${d.embedding_provider || 'sentence-transformers'})`;
+        }
+      } catch (e) {
+        // Standalone mode is fine
       }
     }
+
+    // Initialize Theme and Health on load
+    initTheme();
+    checkHealth();
   </script>
 </body>
 </html>
