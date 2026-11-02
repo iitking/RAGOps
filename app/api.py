@@ -43,6 +43,7 @@ except ImportError:
             self.detail = detail
 
 from app.config import get_settings
+from app.evaluation.metrics import LLMJudge
 from app.evaluation.run_eval import ensure_index_populated, run_evaluation
 from app.feedback.routes import router as feedback_router
 from app.generation.answer import Citation, GenerationResult, LLMGenerator
@@ -78,6 +79,10 @@ class QueryResponse(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
+    faithfulness: float = 1.0
+    hallucination_rate: float = 0.0
+    quality_gate_passed: bool = True
+    claims: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class IngestRequest(BaseModel):
@@ -115,16 +120,19 @@ app.include_router(feedback_router)
 # Lazy singletons
 _retriever: Optional[Retriever] = None
 _generator: Optional[LLMGenerator] = None
+_judge: Optional[LLMJudge] = None
 
 
-def get_pipeline() -> tuple[Retriever, LLMGenerator]:
-    global _retriever, _generator
+def get_pipeline() -> tuple[Retriever, LLMGenerator, LLMJudge]:
+    global _retriever, _generator, _judge
     if _retriever is None:
         _retriever = Retriever()
         ensure_index_populated(_retriever)
     if _generator is None:
         _generator = LLMGenerator()
-    return _retriever, _generator
+    if _judge is None:
+        _judge = LLMJudge()
+    return _retriever, _generator, _judge
 
 
 UI_HTML_PATH = Path(__file__).parent / "static" / "index.html"
@@ -148,7 +156,7 @@ def serve_ui() -> Any:
 def health_check() -> Dict[str, Any]:
     """Health and readiness probe."""
     settings = get_settings()
-    retriever, _ = get_pipeline()
+    retriever, _, _ = get_pipeline()
     return {
         "status": "healthy",
         "vector_store_type": settings.vector_store_type,
@@ -169,7 +177,7 @@ def operational_metrics() -> Dict[str, Any]:
 def ingest_documents(payload: IngestRequest) -> Dict[str, Any]:
     """Ingest documents or raw text into the vector store."""
     settings = get_settings()
-    retriever, _ = get_pipeline()
+    retriever, _, _ = get_pipeline()
     chunker = RecursiveTextChunker(chunk_size=settings.chunk_size, chunk_overlap=settings.chunk_overlap)
 
     docs: List[Document] = []
@@ -205,9 +213,9 @@ def ingest_documents(payload: IngestRequest) -> Dict[str, Any]:
 
 @app.post("/query", response_model=QueryResponse, tags=["Retrieval & Generation"])
 def query_rag(payload: QueryRequest) -> QueryResponse:
-    """Run semantic retrieval, generate grounded answer with citations, and record trace."""
+    """Run semantic retrieval, generate grounded answer with citations, evaluate faithfulness, and record trace."""
     start_total = time.perf_counter()
-    retriever, generator = get_pipeline()
+    retriever, generator, judge = get_pipeline()
 
     # 1. Retrieve evidence chunks
     results, retrieval_latency = retriever.retrieve(payload.question, top_k=payload.top_k)
@@ -216,7 +224,13 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
     gen_result = generator.generate(payload.question, results)
     total_latency = (time.perf_counter() - start_total) * 1000.0
 
-    # 3. Create and record trace event
+    # 3. Real-time LLM-as-a-Judge Evaluation of the response
+    contexts = [r.text for r in results]
+    faithfulness, claim_details = judge.evaluate_faithfulness(gen_result.answer, contexts)
+    hallucination_rate = round(max(0.0, 1.0 - faithfulness), 4)
+    gate_passed = (faithfulness >= 0.85) and (hallucination_rate <= 0.02)
+
+    # 4. Create and record trace event
     citations_data = [c.to_dict() for c in gen_result.citations]
     retrieved_data = [r.to_dict() for r in results]
 
@@ -260,6 +274,17 @@ def query_rag(payload: QueryRequest) -> QueryResponse:
         prompt_tokens=gen_result.prompt_tokens,
         completion_tokens=gen_result.completion_tokens,
         total_tokens=gen_result.total_tokens,
+        faithfulness=round(faithfulness, 4),
+        hallucination_rate=hallucination_rate,
+        quality_gate_passed=gate_passed,
+        claims=[
+            {
+                "text": c.get("claim", ""),
+                "supported": c.get("supported", True),
+                "ref": "Supported Context" if c.get("supported", True) else "UNSUPPORTED CLAIM",
+            }
+            for c in claim_details
+        ],
     )
 
 

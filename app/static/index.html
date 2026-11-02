@@ -611,7 +611,52 @@
       document.getElementById('answer-body').innerHTML = `<p>${data.answer}</p>`;
       document.getElementById('latency-pill').textContent = `⏱️ ${data.total_latency_ms} ms`;
       document.getElementById('model-pill').textContent = data.model;
-      
+
+      const fScore = data.faithfulness !== undefined ? data.faithfulness : 1.0;
+      const hScore = data.hallucination_rate !== undefined ? data.hallucination_rate : 0.0;
+      const isPassing = data.quality_gate_passed !== undefined ? data.quality_gate_passed : (fScore >= 0.85);
+
+      document.getElementById('metric-faithfulness').textContent = `${fScore.toFixed(3)} (${(fScore * 100).toFixed(1)}%)`;
+      document.getElementById('metric-hallucination').textContent = `${hScore.toFixed(3)} (${(hScore * 100).toFixed(1)}%)`;
+      document.getElementById('metric-gate').textContent = isPassing ? "PASSED ✓" : "BLOCKED ❌";
+      document.getElementById('metric-gate-subtext').textContent = isPassing ? "Approved for Deploy" : "Violates Gate Thresholds";
+
+      const alertBanner = document.getElementById('regression-alert-banner');
+      const dot = document.getElementById('status-indicator-dot');
+      const faithfulnessEl = document.getElementById('metric-faithfulness');
+      const hallucEl = document.getElementById('metric-hallucination');
+      const gateEl = document.getElementById('metric-gate');
+
+      if (isPassing) {
+        alertBanner.classList.add('hidden');
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+        faithfulnessEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+        hallucEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+        gateEl.className = "text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono";
+      } else {
+        alertBanner.classList.remove('hidden');
+        dot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse";
+        faithfulnessEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+        hallucEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+        gateEl.className = "text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 font-mono";
+      }
+
+      if (data.claims && data.claims.length > 0) {
+        const supportedCount = data.claims.filter(c => c.supported).length;
+        document.getElementById('claims-count-badge').textContent = `${supportedCount} / ${data.claims.length} Supported`;
+        document.getElementById('claims-list-container').innerHTML = data.claims.map(c => `
+          <div class="p-2.5 rounded-xl ${c.supported ? 'bg-emerald-500/5 border border-emerald-500/20 text-slate-700 dark:text-slate-300' : 'bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300'} text-xs flex items-start justify-between gap-3">
+            <div class="flex items-start gap-2">
+              <span class="${c.supported ? 'text-emerald-500' : 'text-rose-500'} font-bold text-sm">${c.supported ? '✓' : '✕'}</span>
+              <span>"${c.text}"</span>
+            </div>
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded ${c.supported ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold'} whitespace-nowrap">
+              ${c.ref}
+            </span>
+          </div>
+        `).join('');
+      }
+
       if (data.citations && data.citations.length > 0) {
         document.getElementById('chunks-count').textContent = data.citations.length + ' chunks';
         document.getElementById('chunks-container').innerHTML = data.citations.map(c => `
