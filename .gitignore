@@ -48,6 +48,9 @@ reports/*.json
 reports/*.jsonl
 reports/*.csv
 !reports/.gitkeep
+!reports/eval_real.json
+!reports/eval_regressed.json
+!reports/eval.json
 
 # Testing & coverage
 .pytest_cache/

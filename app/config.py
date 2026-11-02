@@ -21,7 +21,7 @@ try:
             extra="ignore",
         )
 
-        app_env: str = Field(default="development", alias="APP_ENV")
+        app_env: str = Field(default="production", alias="APP_ENV")
         host: str = Field(default="0.0.0.0", alias="HOST")
         port: int = Field(default=8000, alias="PORT")
         debug: bool = Field(default=False, alias="DEBUG")
@@ -38,21 +38,21 @@ try:
         qdrant_api_key: Optional[str] = Field(default=None, alias="QDRANT_API_KEY")
         qdrant_collection: str = Field(default="ragops_documents", alias="QDRANT_COLLECTION")
 
-        # Embeddings: "hash" (offline/test), "sentence-transformers", "openai"
-        embedding_provider: str = Field(default="hash", alias="EMBEDDING_PROVIDER")
+        # Embeddings: "sentence-transformers", "openai", "hash"
+        embedding_provider: str = Field(default="sentence-transformers", alias="EMBEDDING_PROVIDER")
         embedding_model_name: str = Field(default="all-MiniLM-L6-v2", alias="EMBEDDING_MODEL_NAME")
         embedding_dimension: int = Field(default=384, alias="EMBEDDING_DIMENSION")
 
-        # LLM Generation: "mock" (deterministic offline), "openai", "anthropic"
-        llm_provider: str = Field(default="mock", alias="LLM_PROVIDER")
+        # LLM Generation: "openai", "gemini", "anthropic", "mock"
+        llm_provider: str = Field(default="openai", alias="LLM_PROVIDER")
         llm_model: str = Field(default="gpt-4o-mini", alias="LLM_MODEL")
         llm_api_key: Optional[str] = Field(default=None, alias="LLM_API_KEY")
         llm_base_url: Optional[str] = Field(default=None, alias="LLM_BASE_URL")
 
         # RAG pipeline parameters
-        chunk_size: int = Field(default=500, alias="CHUNK_SIZE")
-        chunk_overlap: int = Field(default=50, alias="CHUNK_OVERLAP")
-        top_k: int = Field(default=3, alias="TOP_K")
+        chunk_size: int = Field(default=300, alias="CHUNK_SIZE")
+        chunk_overlap: int = Field(default=60, alias="CHUNK_OVERLAP")
+        top_k: int = Field(default=5, alias="TOP_K")
         min_similarity: float = Field(default=0.0, alias="MIN_SIMILARITY")
 
         # CI Quality Gate Thresholds
@@ -73,7 +73,7 @@ except ImportError:
     # Fallback when pydantic_settings is not installed
     class Settings:  # type: ignore[no-redef]
         def __init__(self) -> None:
-            self.app_env = os.getenv("APP_ENV", "development")
+            self.app_env = os.getenv("APP_ENV", "production")
             self.host = os.getenv("HOST", "0.0.0.0")
             self.port = int(os.getenv("PORT", "8000"))
             self.debug = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
@@ -88,18 +88,18 @@ except ImportError:
             self.qdrant_api_key = os.getenv("QDRANT_API_KEY", None)
             self.qdrant_collection = os.getenv("QDRANT_COLLECTION", "ragops_documents")
 
-            self.embedding_provider = os.getenv("EMBEDDING_PROVIDER", "hash")
+            self.embedding_provider = os.getenv("EMBEDDING_PROVIDER", "sentence-transformers")
             self.embedding_model_name = os.getenv("EMBEDDING_MODEL_NAME", "all-MiniLM-L6-v2")
             self.embedding_dimension = int(os.getenv("EMBEDDING_DIMENSION", "384"))
 
-            self.llm_provider = os.getenv("LLM_PROVIDER", "mock")
+            self.llm_provider = os.getenv("LLM_PROVIDER", "openai")
             self.llm_model = os.getenv("LLM_MODEL", "gpt-4o-mini")
             self.llm_api_key = os.getenv("LLM_API_KEY", None)
             self.llm_base_url = os.getenv("LLM_BASE_URL", None)
 
-            self.chunk_size = int(os.getenv("CHUNK_SIZE", "500"))
-            self.chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "50"))
-            self.top_k = int(os.getenv("TOP_K", "3"))
+            self.chunk_size = int(os.getenv("CHUNK_SIZE", "300"))
+            self.chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "60"))
+            self.top_k = int(os.getenv("TOP_K", "5"))
             self.min_similarity = float(os.getenv("MIN_SIMILARITY", "0.0"))
 
             self.gate_min_context_recall = float(os.getenv("GATE_MIN_CONTEXT_RECALL", "0.90"))

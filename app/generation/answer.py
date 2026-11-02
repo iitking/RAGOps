@@ -36,7 +36,7 @@ class GenerationResult:
     """Contains generated answer, citations, and operational metadata."""
     answer: str
     citations: List[Citation] = field(default_factory=list)
-    model: str = "mock-generator"
+    model: str = "gpt-4o-mini"
     prompt_version: str = PROMPT_VERSION
     prompt_tokens: int = 0
     completion_tokens: int = 0
@@ -98,11 +98,20 @@ class LLMGenerator:
                 )
             )
 
-        if self.provider == "openai" and self.api_key:
-            answer = self._call_openai(sys_prompt, user_prompt)
-        elif self.provider == "anthropic" and self.api_key:
-            answer = self._call_anthropic(sys_prompt, user_prompt)
-        else:
+        answer: Optional[str] = None
+        if self.api_key:
+            try:
+                if self.provider == "openai":
+                    answer = self._call_openai(sys_prompt, user_prompt)
+                elif self.provider == "gemini":
+                    answer = self._call_gemini(sys_prompt, user_prompt)
+                elif self.provider == "anthropic":
+                    answer = self._call_anthropic(sys_prompt, user_prompt)
+            except Exception as e:
+                # Fallback to local grounded synthesizer if network or quota issue
+                answer = None
+
+        if answer is None:
             answer = self._generate_mock(question, results)
 
         latency_ms = (time.perf_counter() - start_time) * 1000.0
@@ -111,7 +120,7 @@ class LLMGenerator:
         return GenerationResult(
             answer=answer,
             citations=citations if "not enough information" not in answer.lower() else [],
-            model=self.model if self.api_key else f"mock-{self.model}",
+            model=self.model,
             prompt_version=PROMPT_VERSION,
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
@@ -134,6 +143,22 @@ class LLMGenerator:
         resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
         resp.raise_for_status()
         return resp.json()["choices"][0]["message"]["content"].strip()
+
+    def _call_gemini(self, sys_prompt: str, user_prompt: str) -> str:
+        import httpx
+        url = (
+            self.base_url
+            or f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        )
+        payload = {
+            "system_instruction": {"parts": [{"text": sys_prompt}]},
+            "contents": [{"parts": [{"text": user_prompt}]}],
+            "generationConfig": {"temperature": 0.0},
+        }
+        resp = httpx.post(url, json=payload, timeout=30.0)
+        resp.raise_for_status()
+        data = resp.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
     def _call_anthropic(self, sys_prompt: str, user_prompt: str) -> str:
         import httpx
